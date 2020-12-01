@@ -17,3 +17,9 @@ crate-type = ["lib"]        # The crate types to generate.
 required-features = []      # Features required to build this target (N/A for lib).
 
 [dependencies]
+
+# raqote dependencies
+raqote = "0.8.0"
+
+# euclid
+euclid = "0.22.1"

@@ -1,6 +1,7 @@
 use hyber::{RenderInstruction, RenderInstructionCollection};
 use std::collections::BTreeMap;
 use std::vec::Vec;
+use euclid::{Point2D};
 
 // Method to simulate an iteration over the Render Instructions on the Collection
 fn renderer (render: &BTreeMap<u32, Vec<RenderInstruction>>){
@@ -45,15 +46,15 @@ fn frame_1(render: &mut BTreeMap<u32, Vec<RenderInstruction>>){
     let mut widget_4_instructions = Vec::new();
 
     // Add instructions to the widget's vectors
-    widget_1_instructions.push(RenderInstruction::DrawRect);
-    widget_1_instructions.push(RenderInstruction::DrawText);
+    widget_1_instructions.push(RenderInstruction::DrawRect{point: Point2D::new(0.0, 0.0), length: 0, width: 0});
+    widget_1_instructions.push(RenderInstruction::DrawText{point: Point2D::new(0.0, 0.0)});
 
-    widget_2_instructions.push(RenderInstruction::DrawLine);
+    widget_2_instructions.push(RenderInstruction::DrawLine{pointA: Point2D::new(0.0, 0.0), pointB: Point2D::new(0.0, 0.0)});
 
-    widget_3_instructions.push(RenderInstruction::DrawImage);
+    widget_3_instructions.push(RenderInstruction::DrawImage{point: Point2D::new(0.0, 0.0)});
 
-    widget_4_instructions.push(RenderInstruction::DrawCircle);
-    widget_4_instructions.push(RenderInstruction::DrawText);
+    widget_4_instructions.push(RenderInstruction::DrawCircle{point: Point2D::new(0.0, 0.0), r: 0.0});
+    widget_4_instructions.push(RenderInstruction::DrawText{point: Point2D::new(0.0, 0.0)});
 
     // Insert those widget's instructions on the collection
     // This simulates the process of sending all the new instructions to the collection
@@ -70,9 +71,8 @@ fn frame_2(render: &mut BTreeMap<u32, Vec<RenderInstruction>>){
     let mut widget_2_instructions = Vec::new();
 
     // Simulate some change on some widget
-    //let mut widget_2_instructions_frame_2 = Vec::new();
-    widget_2_instructions.push(RenderInstruction::DrawRect);
-    widget_2_instructions.push(RenderInstruction::DrawText);
+    widget_2_instructions.push(RenderInstruction::DrawRect{point: Point2D::new(0.0, 0.0), length: 0, width: 0});
+    widget_2_instructions.push(RenderInstruction::DrawText{point: Point2D::new(0.0, 0.0)});
 
     // Insert those widget's instructions on the collection
     // This simulates the process of sending all the new instructions to the collection
