@@ -1,26 +1,27 @@
-use std::collections::BTreeMap;
+//use std::collections::BTreeMap;
 use raqote::*;
+use euclid::{Point2D};
 
 /// Enumeration with the Render Instructions @joaosantos
 pub enum RenderInstruction {
     /// Instruction to the Render that a point needs to be drawn on the next Clipping
     /// The point should be rendered on absolute coordinates (x,y)
 	DrawPoint {
-        point: Point,
+        point: Point2D<f32,f32>,
     },
     
     /// Instruction to the Render that a line needs to be drawn on the next Clipping
     /// The line should be rendered on absolute coordinates from (x1, y1) to (x2, y2)
 	DrawLine {
-        pointA: Point,
-        pointB: Point,
+        pointA: Point2D<f32,f32>,
+        pointB: Point2D<f32,f32>,
     },
 
     /// Instruction to the Render that an arc needs to be drawn on the next Clipping
     /// The arc should be rendered with center on absolute coordinates (x, y), 'r'
     /// radius, 'sang' start angle and 'eang' end angle
     DrawArc {
-        point: Point,
+        point: Point2D<f32,f32>,
         r: f32,
         sang: f32,
         eang: f32,
@@ -30,14 +31,14 @@ pub enum RenderInstruction {
     /// The circle should be rendered with center on absolute coordinates (x, y) and 'r'
     /// radius
     DrawCircle {
-        point: Point,
+        point: Point2D<f32,f32>,
         r: f32,
     },
     /// Instruction to the Render that a rectangle needs to be drawn on the next Clipping
     /// The rectangle should be rendered on absolute coordinates (x, y) with 'l' length
     /// and 'w' width
 	DrawRect {
-        point: Point,
+        point: Point2D<f32,f32>,
         length: u32,
         width: u32,
     },
@@ -46,22 +47,22 @@ pub enum RenderInstruction {
     /// The triangle should be rendered between the absolute coordinates (x1, y1),
     /// (x2, y2) and (x3, y3)
     DrawTriangle {
-        pointA: Point,
-        pointB: Point,
-        pointC: Point,
+        pointA: Point2D<f32,f32>,
+        pointB: Point2D<f32,f32>,
+        pointC: Point2D<f32,f32>,
     },
 
     /// Instruction to the Render that an image needs to be drawn on the next Clipping
     /// [Doubt] The image should be rendered with center on the absolute coordinates (x, y)
     /// and with 'w' width and 'l' length
     DrawImage {
-        point: Point,
+        point: Point2D<f32,f32>,
     },
 
     /// Instruction to the Render that some text needs to be drawn on the next Clipping
     /// [Doubt] The text should be rendered according to the text_alignment
     DrawText {
-        point: Point,
+        point: Point2D<f32,f32>,
     },
 }
 /// Assumptions:
@@ -181,12 +182,12 @@ pub trait Display {
     
 }
 
-struct BoxLayout {
+/*struct BoxLayout {
     min_x: unimplemented!(),
     max_x: unimplemented!(),
     min_y: unimplemented!(),
     max_y: unimplemented!()
-}
+}*/
 
 struct SliverLayout {
 }
@@ -195,31 +196,18 @@ pub trait Widget {
 
 }
 
-pub struct Point {
-    x: f32,
-    y: f32,
-}
-/// Implements the method for a new point
-impl Point {
-    pub fn new(x: f32, y: f32) -> Point {
-        Point {
-            x,
-            y,
-        }
-    }
-}
 
 /// Implements the methods for the rendering primitives
 pub trait Primitives {
-    fn draw(&mut self, instruction: RenderInstruction, buffer: Buffer);
-    fn DrawPoint(&mut self, instruction: RenderInstruction, buffer: Buffer) -> Buffer;
-    fn DrawLine(&mut self, instruction: RenderInstruction, buffer: Buffer) -> Buffer;
-    fn DrawArc(&mut self, instruction: RenderInstruction, buffer: Buffer) -> Buffer;
-    fn DrawCircle(&mut self, instruction: RenderInstruction, buffer: Buffer) -> Buffer;
-    fn DrawRect(&mut self, instruction: RenderInstruction, buffer: Buffer) -> Buffer;
-    fn DrawTriangle(&mut self, instruction: RenderInstruction, buffer: Buffer) -> Buffer;
-    fn DrawImage(&mut self, instruction: RenderInstruction, buffer: Buffer) -> Buffer;
-    fn DrawText(&mut self, instruction: RenderInstruction, buffer: Buffer) -> Buffer;
+    fn draw(&mut self, instruction: RenderInstruction);
+    fn DrawPoint(&mut self, point: Point2D<f32,f32>);
+    fn DrawLine(&mut self, pointA: Point2D<f32,f32>, pointB: Point2D<f32,f32>);
+    fn DrawArc(&mut self, point: Point2D<f32,f32>, r: f32, sang: f32, eang: f32);
+    fn DrawCircle(&mut self, point: Point2D<f32,f32>, r: f32);
+    fn DrawRect(&mut self, point: Point2D<f32,f32>, l: u32, w: u32);
+    fn DrawTriangle(&mut self, pointA: Point2D<f32,f32>, pointB: Point2D<f32,f32>, pointC: Point2D<f32,f32>);
+    fn DrawImage(&mut self, point: Point2D<f32,f32>);
+    fn DrawText(&mut self, point: Point2D<f32,f32>);
 }
 
 pub struct Raqote {
@@ -228,52 +216,51 @@ pub struct Raqote {
 
 impl Primitives for Raqote {
 
-    fn draw(&mut self, instruction: RenderInstruction, buffer: Buffer) -> Buffer {
+    fn draw(&mut self, instruction: RenderInstruction) {
         match instruction {
-            DrawPoint   =>  self.DrawPoint(DrawPoint, buffer),
-            DrawLine    =>  self.DrawLine(DrawLine, buffer),
-            DrawArc     =>  self.DrawArc(DrawArc, buffer),
-            DrawCircle  =>  self.DrawCircle(DrawCircle, buffer),
-            DrawRect    =>  self.DrawRect(DrawRect, buffer),
-            DrawTriangle=>  self.DrawTriangle(DrawTriangle, buffer),
-            DrawImage   =>  self.DrawImage(DrawImage, buffer),
-            DrawText    =>  self.DrawText(DrawText, buffer),
+            RenderInstruction::DrawPoint {point}                        =>  self.DrawPoint(point),
+            RenderInstruction::DrawLine {pointA, pointB}                =>  self.DrawLine(pointA, pointB),
+            RenderInstruction::DrawArc {point, r, sang, eang}           =>  self.DrawArc(point, r, sang, eang),
+            RenderInstruction::DrawCircle {point, r}                    =>  self.DrawCircle(point, r),
+            RenderInstruction::DrawRect {point, length, width}          =>  self.DrawRect(point, length, width),
+            RenderInstruction::DrawTriangle {pointA, pointB, pointC}    =>  self.DrawTriangle(pointA, pointB, pointC),
+            RenderInstruction::DrawImage {point}                        =>  self.DrawImage(point),
+            RenderInstruction::DrawText {point}                         =>  self.DrawText(point),
         }
     }
     /// Instruction to the Render that a point needs to be drawn on the next Clipping
     /// The point should be rendered on absolute coordinates (x,y)
-    fn DrawPoint(&mut self, point: Point, buffer: Buffer) -> Buffer {
+    fn DrawPoint(&mut self, point: Point2D<f32,f32>) {
         
     }
     /// Instruction to the Render that a line needs to be drawn on the next Clipping
     /// The line should be rendered on absolute coordinates from (x1, y1) to (x2, y2)
-	fn DrawLine(&mut self, pointA: Point, pointB: Point, buffer: Buffer) -> Buffer {
+	fn DrawLine(&mut self, pointA: Point2D<f32,f32>, pointB: Point2D<f32,f32>) {
         self.pb.move_to(pointA.x, pointA.y);
         self.pb.line_to(pointB.x,pointB.y);
-        
     }
     /// Instruction to the Render that an arc needs to be drawn on the next Clipping
     /// The arc should be rendered with center on absolute coordinates (x, y), 'r'
     /// radius, 'sang' start angle and 'eang' end angle
-    fn DrawArc(&mut self, point: Point, r: f32, sang: f32, eang: f32, buffer: Buffer) -> Buffer {
+    fn DrawArc(&mut self, point: Point2D<f32,f32>, r: f32, sang: f32, eang: f32) {
         self.pb.arc(point.x, point.y, r, sang, eang)
     }
     /// Instruction to the Render that a circle needs to be drawn on the next Clipping
     /// The circle should be rendered with center on absolute coordinates (x, y) and 'r'
     /// radius
-    fn DrawCircle(&mut self, point: Point, r: u32, buffer: Buffer) -> Buffer {
+    fn DrawCircle(&mut self, point: Point2D<f32,f32>, r: f32) {
 
     }
     /// Instruction to the Render that a rectangle needs to be drawn on the next Clipping
     /// The rectangle should be rendered on absolute coordinates (x, y) with 'l' length
     /// and 'w' width
-	fn DrawRect(&mut self, point: Point, l: u32, w: u32, buffer: Buffer) -> Buffer {
+	fn DrawRect(&mut self, point: Point2D<f32,f32>, l: u32, w: u32) {
         self.pb.rect(point.x, point.y, l as f32, w as f32);
     }
     /// Instruction to the Render that a triangle needs to be drawn on the next Clipping
     /// The triangle should be rendered between the absolute coordinates (x1, y1),
     /// (x2, y2) and (x3, y3)
-    fn DrawTriangle(&mut self, pointA: Point, pointB: Point, pointC: Point, buffer: Buffer) -> Buffer {
+    fn DrawTriangle(&mut self, pointA: Point2D<f32,f32>, pointB: Point2D<f32,f32>, pointC: Point2D<f32,f32>) {
         self.pb.move_to(pointA.x, pointA.y);
         self.pb.line_to(pointB.x,pointB.y);
         self.pb.line_to(pointC.x,pointC.y);
@@ -282,12 +269,12 @@ impl Primitives for Raqote {
     /// Instruction to the Render that an image needs to be drawn on the next Clipping
     /// [Doubt] The image should be rendered with center on the absolute coordinates (x, y)
     /// and with 'w' width and 'l' length
-    fn DrawImage(&mut self, point: Point,buffer: Buffer) -> Buffer {
+    fn DrawImage(&mut self, point: Point2D<f32,f32>) {
         
     }
     /// Instruction to the Render that some text needs to be drawn on the next Clipping
     /// [Doubt] The text should be rendered according to the text_alignment
-    fn DrawText(&mut self, point: Point,buffer: Buffer) -> Buffer {
+    fn DrawText(&mut self, point: Point2D<f32,f32>) {
 
     }
 }
@@ -301,6 +288,45 @@ mod tests {
     #[test]
     fn it_works() {
         assert_eq!(2 + 2, 4);
+    }
+
+    #[test]
+    fn test() {
+        use raqote::*;
+        use euclid::{Point2D};
+        use super::*;
+        let mut dt = DrawTarget::new(400, 400);
+        let mut pb = PathBuilder::new();
+        let mut raqote = Raqote {pb: PathBuilder::new()};
+
+        let instruction = RenderInstruction::DrawLine { pointA: Point2D::new(10., 10.), pointB: Point2D::new(50., 50.)};
+
+        raqote.draw(instruction);
+
+        //pb.move_to(10., 10.);
+        //pb.line_to(50.,50.);
+        
+        raqote.pb.close();
+        let path = raqote.pb.finish();
+        dt.stroke(
+            &path,
+            &Source::Solid(SolidSource {
+                r: 0x80,
+                g: 0x80,
+                b: 0x80,
+                a: 0x80,
+            }),
+            &StrokeStyle {
+                cap: LineCap::Round,
+                join: LineJoin::Round,
+                width: 10.,
+                miter_limit: 2.,
+                dash_array: vec![10., 18.],
+                dash_offset: 16.,
+            },
+            &DrawOptions::new()
+        );
+        dt.write_png("result.png");
     }
 }
 

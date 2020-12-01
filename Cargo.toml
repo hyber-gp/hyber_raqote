@@ -10,3 +10,6 @@ edition = "2018"
 
 # raqote depenencies
 raqote = "0.8.0"
+
+# euclid
+euclid = "0.22.1"
