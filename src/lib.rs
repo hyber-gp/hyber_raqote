@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 /// Enumeration with the Render Instructions @joaosantos
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum RenderInstruction{
     /// Instruction to the Render that a point needs to be drawn on the next Clipping
     /// The point should be rendered on absolute coordinates (x,y)
@@ -105,11 +105,10 @@ pub enum RenderInstruction{
 
 /// Structure that represents the collection of Render Instructions to be 
 /// rendered each frame
-pub struct RenderInstructionCollection {
-    /// 
-    pub instructions: BTreeMap<u32, Queue<RenderInstruction>>
+#[derive(Debug)]
+pub struct RenderInstructionCollection<'a> {
+    pub instructions: &'a BTreeMap<u32, Vec<RenderInstruction>>
 }
-
 // Assumptions for the map:
 //  - Need to have a key-value pair of <u32, RenderInstruction>/<id, RenderInstruction>
 // Requirements:
@@ -121,37 +120,6 @@ pub struct RenderInstructionCollection {
 // References: 
 //     - https://doc.rust-lang.org/std/collections/struct.BTreeMap.html
 //     - https://doc.rust-lang.org/std/collections/index.html
-
-pub struct Queue<T> {
-    pub queue: Vec<T>,
-}
-
-impl<T> Queue<T> {
-    pub fn new() -> Self {
-        Queue { queue: Vec::new() }
-    }
-
-    pub fn enqueue(&mut self, item: T){
-        self.queue.push(item)
-    }
-
-    pub fn dequeue(&mut self) -> T {
-        self.queue.remove(0)
-    }
-
-    pub fn lenght(&self) -> usize {
-        self.queue.len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.queue.is_empty()
-    }
-
-    ///remove the first
-    pub fn peek(&self) -> Option<&T> {
-        self.queue.first()
-    }
-}
 
 #[cfg(test)]
 mod tests {
