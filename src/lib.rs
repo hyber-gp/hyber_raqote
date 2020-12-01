@@ -5,33 +5,64 @@ use raqote::*;
 pub enum RenderInstruction {
     /// Instruction to the Render that a point needs to be drawn on the next Clipping
     /// The point should be rendered on absolute coordinates (x,y)
-	DrawPoint,
+	DrawPoint {
+        point: Point,
+    },
+    
     /// Instruction to the Render that a line needs to be drawn on the next Clipping
     /// The line should be rendered on absolute coordinates from (x1, y1) to (x2, y2)
-	DrawLine,
+	DrawLine {
+        pointA: Point,
+        pointB: Point,
+    },
+
     /// Instruction to the Render that an arc needs to be drawn on the next Clipping
     /// The arc should be rendered with center on absolute coordinates (x, y), 'r'
     /// radius, 'sang' start angle and 'eang' end angle
-    DrawArc,
+    DrawArc {
+        point: Point,
+        r: f32,
+        sang: f32,
+        eang: f32,
+    },
+
     /// Instruction to the Render that a circle needs to be drawn on the next Clipping
     /// The circle should be rendered with center on absolute coordinates (x, y) and 'r'
     /// radius
-    DrawCircle,
+    DrawCircle {
+        point: Point,
+        r: f32,
+    },
     /// Instruction to the Render that a rectangle needs to be drawn on the next Clipping
     /// The rectangle should be rendered on absolute coordinates (x, y) with 'l' length
     /// and 'w' width
-	DrawRect,
+	DrawRect {
+        point: Point,
+        length: u32,
+        width: u32,
+    },
+
     /// Instruction to the Render that a triangle needs to be drawn on the next Clipping
     /// The triangle should be rendered between the absolute coordinates (x1, y1),
     /// (x2, y2) and (x3, y3)
-    DrawTriangle,
+    DrawTriangle {
+        pointA: Point,
+        pointB: Point,
+        pointC: Point,
+    },
+
     /// Instruction to the Render that an image needs to be drawn on the next Clipping
     /// [Doubt] The image should be rendered with center on the absolute coordinates (x, y)
     /// and with 'w' width and 'l' length
-    DrawImage,
+    DrawImage {
+        point: Point,
+    },
+
     /// Instruction to the Render that some text needs to be drawn on the next Clipping
     /// [Doubt] The text should be rendered according to the text_alignment
-    DrawText,
+    DrawText {
+        point: Point,
+    },
 }
 /// Assumptions:
 ///     - 2D Meshes are compounded by a list of triangles so the instructions are gonna be
@@ -181,14 +212,14 @@ impl Point {
 /// Implements the methods for the rendering primitives
 pub trait Primitives {
     fn draw(&mut self, instruction: RenderInstruction, buffer: Buffer);
-    fn DrawPoint(&mut self, point: Point, buffer: Buffer) -> Buffer;
-    fn DrawLine(&mut self, pointA: Point, pointB: Point, buffer: Buffer) -> Buffer;
-    fn DrawArc(&mut self, point: Point, r: f32, sang: f32, eang: f32, buffer: Buffer) -> Buffer;
-    fn DrawCircle(&mut self, point: Point, r: f32, buffer: Buffer) -> Buffer;
-    fn DrawRect(&mut self, point: Point, l: u32, w: u32, buffer: Buffer) -> Buffer;
-    fn DrawTriangle(&mut self, pointA: Point, pointB: Point, pointC: Point, buffer: Buffer) -> Buffer;
-    fn DrawImage(&mut self, point: Point,buffer: Buffer) -> Buffer;
-    fn DrawText(&mut self, point: Point,buffer: Buffer) -> Buffer;
+    fn DrawPoint(&mut self, instruction: RenderInstruction, buffer: Buffer) -> Buffer;
+    fn DrawLine(&mut self, instruction: RenderInstruction, buffer: Buffer) -> Buffer;
+    fn DrawArc(&mut self, instruction: RenderInstruction, buffer: Buffer) -> Buffer;
+    fn DrawCircle(&mut self, instruction: RenderInstruction, buffer: Buffer) -> Buffer;
+    fn DrawRect(&mut self, instruction: RenderInstruction, buffer: Buffer) -> Buffer;
+    fn DrawTriangle(&mut self, instruction: RenderInstruction, buffer: Buffer) -> Buffer;
+    fn DrawImage(&mut self, instruction: RenderInstruction, buffer: Buffer) -> Buffer;
+    fn DrawText(&mut self, instruction: RenderInstruction, buffer: Buffer) -> Buffer;
 }
 
 pub struct Raqote {
@@ -199,14 +230,14 @@ impl Primitives for Raqote {
 
     fn draw(&mut self, instruction: RenderInstruction, buffer: Buffer) -> Buffer {
         match instruction {
-            DrawPoint   =>  self.DrawPoint(Point {x: 0., y: 10.}, buffer),
-            DrawLine    =>  self.DrawLine(Point {x: 0., y: 10.}, Point {x:50., y:100.}, buffer),
-            DrawArc     =>  self.DrawArc(),
-            DrawCircle  =>  self.DrawCircle(),
-            DrawRect    =>  self.DrawRect(),
-            DrawTriangle=>  self.DrawTriangle(),
-            DrawImage   =>  self.DrawImage(),
-            DrawText    =>  self.DrawText(),
+            DrawPoint   =>  self.DrawPoint(DrawPoint, buffer),
+            DrawLine    =>  self.DrawLine(DrawLine, buffer),
+            DrawArc     =>  self.DrawArc(DrawArc, buffer),
+            DrawCircle  =>  self.DrawCircle(DrawCircle, buffer),
+            DrawRect    =>  self.DrawRect(DrawRect, buffer),
+            DrawTriangle=>  self.DrawTriangle(DrawTriangle, buffer),
+            DrawImage   =>  self.DrawImage(DrawImage, buffer),
+            DrawText    =>  self.DrawText(DrawText, buffer),
         }
     }
     /// Instruction to the Render that a point needs to be drawn on the next Clipping
