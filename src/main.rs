@@ -2,6 +2,7 @@ use hyber::{RenderInstruction, RenderInstructionCollection};
 use std::collections::BTreeMap;
 use std::vec::Vec;
 use euclid::{Point2D};
+use raqote::Color;
 
 // Method to simulate an iteration over the Render Instructions on the Collection
 fn renderer (render: &BTreeMap<u32, Vec<RenderInstruction>>){
@@ -46,14 +47,14 @@ fn frame_1(render: &mut BTreeMap<u32, Vec<RenderInstruction>>){
     let mut widget_4_instructions = Vec::new();
 
     // Add instructions to the widget's vectors
-    widget_1_instructions.push(RenderInstruction::DrawRect{point: Point2D::new(0.0, 0.0), length: 0, width: 0});
+    widget_1_instructions.push(RenderInstruction::DrawRect{point: Point2D::new(0.0, 0.0), length: 0, width: 0, color: Color::new(0xff, 0xff, 0xff, 0xff)});
     widget_1_instructions.push(RenderInstruction::DrawText{point: Point2D::new(0.0, 0.0)});
 
-    widget_2_instructions.push(RenderInstruction::DrawLine{pointA: Point2D::new(0.0, 0.0), pointB: Point2D::new(0.0, 0.0)});
+    widget_2_instructions.push(RenderInstruction::DrawLine{pointA: Point2D::new(0.0, 0.0), pointB: Point2D::new(0.0, 0.0), color: Color::new(0xff, 0xff, 0xff, 0xff)});
 
     widget_3_instructions.push(RenderInstruction::DrawImage{point: Point2D::new(0.0, 0.0)});
 
-    widget_4_instructions.push(RenderInstruction::DrawCircle{point: Point2D::new(0.0, 0.0), r: 0.0});
+    widget_4_instructions.push(RenderInstruction::DrawCircle{point: Point2D::new(0.0, 0.0), r: 0.0, color: Color::new(0xff, 0xff, 0xff, 0xff)});
     widget_4_instructions.push(RenderInstruction::DrawText{point: Point2D::new(0.0, 0.0)});
 
     // Insert those widget's instructions on the collection
@@ -71,7 +72,7 @@ fn frame_2(render: &mut BTreeMap<u32, Vec<RenderInstruction>>){
     let mut widget_2_instructions = Vec::new();
 
     // Simulate some change on some widget
-    widget_2_instructions.push(RenderInstruction::DrawRect{point: Point2D::new(0.0, 0.0), length: 0, width: 0});
+    widget_2_instructions.push(RenderInstruction::DrawRect{point: Point2D::new(0.0, 0.0), length: 0, width: 0, color: Color::new(0xff, 0xff, 0xff, 0xff)});
     widget_2_instructions.push(RenderInstruction::DrawText{point: Point2D::new(0.0, 0.0)});
 
     // Insert those widget's instructions on the collection

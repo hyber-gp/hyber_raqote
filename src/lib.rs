@@ -1,56 +1,73 @@
 use std::collections::BTreeMap;
 use raqote::*;
-use euclid::{Point2D};
+use raqote::Color;
+use font_kit::family_name::FamilyName;
+use font_kit::properties::Properties;
+use font_kit::source::SystemSource;
+use euclid::Point2D;
 
 /// Enumeration with the Render Instructions
 #[derive(Copy, Clone, Debug)]
 pub enum RenderInstruction {
     /// Instruction to the Render that a point needs to be drawn on the next Clipping
-    /// The point should be rendered on absolute coordinates (x,y)
+    /// The point should be rendered on absolute coordinates (x,y) 
+    /// Uses a Color struct using hexadecimal alpha and rgb for coloring
 	DrawPoint {
         point: Point2D<f32,f32>,
+        color: Color,
     },
     
     /// Instruction to the Render that a line needs to be drawn on the next Clipping
     /// The line should be rendered on absolute coordinates from (x1, y1) to (x2, y2)
+    /// Uses a Color struct using hexadecimal alpha and rgb for coloring
 	DrawLine {
         pointA: Point2D<f32,f32>,
         pointB: Point2D<f32,f32>,
+        color: Color,
     },
 
     /// Instruction to the Render that an arc needs to be drawn on the next Clipping
     /// The arc should be rendered with center on absolute coordinates (x, y), 'r'
-    /// radius, 'sang' start angle and 'eang' end angle
+    /// radius, 'sang' start angle and 'eang' end angle.
+    /// Uses a Color struct using hexadecimal alpha and rgb for coloring
     DrawArc {
         point: Point2D<f32,f32>,
         r: f32,
         sang: f32,
         eang: f32,
+        color: Color,
     },
 
     /// Instruction to the Render that a circle needs to be drawn on the next Clipping
     /// The circle should be rendered with center on absolute coordinates (x, y) and 'r'
     /// radius
+    /// Uses a Color struct using hexadecimal alpha and rgb for coloring
     DrawCircle {
         point: Point2D<f32,f32>,
         r: f32,
+        color: Color,
     },
     /// Instruction to the Render that a rectangle needs to be drawn on the next Clipping
     /// The rectangle should be rendered on absolute coordinates (x, y) with 'l' length
     /// and 'w' width
+    /// Uses a Color struct using hexadecimal alpha and rgb for coloring
+    /// Uses a Color struct using hexadecimal alpha and rgb for coloring
 	DrawRect {
         point: Point2D<f32,f32>,
         length: u32,
         width: u32,
+        color: Color,
     },
 
     /// Instruction to the Render that a triangle needs to be drawn on the next Clipping
     /// The triangle should be rendered between the absolute coordinates (x1, y1),
     /// (x2, y2) and (x3, y3)
+    /// Uses a Color struct using hexadecimal alpha and rgb for coloring
     DrawTriangle {
         pointA: Point2D<f32,f32>,
         pointB: Point2D<f32,f32>,
         pointC: Point2D<f32,f32>,
+        color: Color,
     },
 
     /// Instruction to the Render that an image needs to be drawn on the next Clipping
@@ -187,83 +204,139 @@ pub trait Widget {
 
 /// Implements the methods for the rendering primitives
 pub trait Primitives {
+    /// Drawing function that takes an instruction to parse and render
     fn draw(&mut self, instruction: RenderInstruction);
-    fn DrawPoint(&mut self, point: Point2D<f32,f32>);
-    fn DrawLine(&mut self, pointA: Point2D<f32,f32>, pointB: Point2D<f32,f32>);
-    fn DrawArc(&mut self, point: Point2D<f32,f32>, r: f32, sang: f32, eang: f32);
-    fn DrawCircle(&mut self, point: Point2D<f32,f32>, r: f32);
-    fn DrawRect(&mut self, point: Point2D<f32,f32>, l: u32, w: u32);
-    fn DrawTriangle(&mut self, pointA: Point2D<f32,f32>, pointB: Point2D<f32,f32>, pointC: Point2D<f32,f32>);
+
+    /// Draws a single point at the coordinates given by point with the colors given  
+    fn DrawPoint(&mut self, point: Point2D<f32,f32>, color: Color);
+
+    /// Draws a line from pointA to pointB with the given color
+    fn DrawLine(&mut self, pointA: Point2D<f32,f32>, pointB: Point2D<f32,f32>, color: Color);
+
+    /// Draws an arc with a center in the given point, with radius r,
+    /// sang and eang indicate the starting angle of the arc and the sweeping angle to cut the circle from
+    /// essentially a starting angle and an end angle. Also paints it with the given color
+    fn DrawArc(&mut self, point: Point2D<f32,f32>, r: f32, sang: f32, eang: f32, color: Color);
+
+    /// Draws a circle at the given coordinates with radius r and paints it a certain color
+    fn DrawCircle(&mut self, point: Point2D<f32,f32>, r: f32, color: Color);
+
+    /// Draws a rectangle at the given coordinates with length l and width w and paints it a certain color
+    fn DrawRect(&mut self, point: Point2D<f32,f32>, l: u32, w: u32, color: Color);
+
+    /// Draws a triangle with the reference points pointA, pointB and pointC using the given color
+    fn DrawTriangle(&mut self, pointA: Point2D<f32,f32>, pointB: Point2D<f32,f32>, pointC: Point2D<f32,f32>, color: Color);
+    
+    /// Draws an image from memory? with a certain size at the given coordinates
     fn DrawImage(&mut self, point: Point2D<f32,f32>);
+    
+    /// Draws text on screen given a certain font, text and coordinates
     fn DrawText(&mut self, point: Point2D<f32,f32>);
 }
 
+/// A struct to save the drawtarget of raqote and to use as a reference for the primitives trait
 pub struct Raqote {
-    pub pb: PathBuilder,
+    pub dt: DrawTarget,
 }
 
+/// Implements the primitives for the raqote 2D context renderer
 impl Primitives for Raqote {
-
     fn draw(&mut self, instruction: RenderInstruction) {
         match instruction {
-            RenderInstruction::DrawPoint {point}                        =>  self.DrawPoint(point),
-            RenderInstruction::DrawLine {pointA, pointB}                =>  self.DrawLine(pointA, pointB),
-            RenderInstruction::DrawArc {point, r, sang, eang}           =>  self.DrawArc(point, r, sang, eang),
-            RenderInstruction::DrawCircle {point, r}                    =>  self.DrawCircle(point, r),
-            RenderInstruction::DrawRect {point, length, width}          =>  self.DrawRect(point, length, width),
-            RenderInstruction::DrawTriangle {pointA, pointB, pointC}    =>  self.DrawTriangle(pointA, pointB, pointC),
-            RenderInstruction::DrawImage {point}                        =>  self.DrawImage(point),
-            RenderInstruction::DrawText {point}                         =>  self.DrawText(point),
+            RenderInstruction::DrawPoint {point,color}                          =>  self.DrawPoint(point, color),
+            RenderInstruction::DrawLine {pointA, pointB,color}                  =>  self.DrawLine(pointA, pointB, color),
+            RenderInstruction::DrawArc {point, r, sang, eang, color}            =>  self.DrawArc(point, r, sang, eang, color),
+            RenderInstruction::DrawCircle {point, r, color}                     =>  self.DrawCircle(point, r, color),
+            RenderInstruction::DrawRect {point, length, width, color}           =>  self.DrawRect(point, length, width, color),
+            RenderInstruction::DrawTriangle {pointA, pointB, pointC, color}     =>  self.DrawTriangle(pointA, pointB, pointC, color),
+            RenderInstruction::DrawImage {point}                                =>  self.DrawImage(point),
+            RenderInstruction::DrawText {point}                                 =>  self.DrawText(point),
         }
     }
-    /// Instruction to the Render that a point needs to be drawn on the next Clipping
-    /// The point should be rendered on absolute coordinates (x,y)
-    fn DrawPoint(&mut self, point: Point2D<f32,f32>) {
+
+    fn DrawPoint(&mut self, point: Point2D<f32,f32>, color: Color,) {
+        // [Doubt] Isn't the point basically a tiny circle? 
+    }
+
+	fn DrawLine(&mut self, pointA: Point2D<f32,f32>, pointB: Point2D<f32,f32>, color: Color) {
+        let mut pb = PathBuilder::new();
+        pb.move_to(pointA.x, pointA.y);
+        pb.line_to(pointB.x,pointB.y);
+        pb.close();
         
+        self.dt.stroke(
+            &pb.finish(),
+            &Source::Solid(SolidSource::from(color)),
+            &StrokeStyle {
+                cap: LineCap::Square,
+                join: LineJoin::Bevel,
+                width: 10.,
+                miter_limit: 0.,
+                dash_array: vec![1., 1.],
+                dash_offset: 0.,
+            },
+            &DrawOptions::new()
+        );
     }
-    /// Instruction to the Render that a line needs to be drawn on the next Clipping
-    /// The line should be rendered on absolute coordinates from (x1, y1) to (x2, y2)
-	fn DrawLine(&mut self, pointA: Point2D<f32,f32>, pointB: Point2D<f32,f32>) {
-        self.pb.move_to(pointA.x, pointA.y);
-        self.pb.line_to(pointB.x,pointB.y);
+
+    fn DrawArc(&mut self, point: Point2D<f32,f32>, r: f32, sang: f32, eang: f32, color: Color,) {
+        let mut pb = PathBuilder::new();
+        pb.move_to(point.x, point.y);
+        pb.arc(point.x, point.y, r, sang, eang);
+
+        pb.close();
+        self.dt.fill(&pb.finish(), &Source::Solid(SolidSource::from(color)), &DrawOptions::new());
     }
-    /// Instruction to the Render that an arc needs to be drawn on the next Clipping
-    /// The arc should be rendered with center on absolute coordinates (x, y), 'r'
-    /// radius, 'sang' start angle and 'eang' end angle
-    fn DrawArc(&mut self, point: Point2D<f32,f32>, r: f32, sang: f32, eang: f32) {
-        self.pb.arc(point.x, point.y, r, sang, eang)
-    }
-    /// Instruction to the Render that a circle needs to be drawn on the next Clipping
-    /// The circle should be rendered with center on absolute coordinates (x, y) and 'r'
-    /// radius
-    fn DrawCircle(&mut self, point: Point2D<f32,f32>, r: f32) {
+
+    fn DrawCircle(&mut self, point: Point2D<f32,f32>, r: f32, color: Color,) {
+        let mut pb = PathBuilder::new();
+
+        pb.move_to(point.x, point.y);
+        pb.arc(point.x, point.y, r, 0., 7.);
+
+        pb.close();
+        self.dt.fill(&pb.finish(), &Source::Solid(SolidSource::from(color)), &DrawOptions::new());
 
     }
-    /// Instruction to the Render that a rectangle needs to be drawn on the next Clipping
-    /// The rectangle should be rendered on absolute coordinates (x, y) with 'l' length
-    /// and 'w' width
-	fn DrawRect(&mut self, point: Point2D<f32,f32>, l: u32, w: u32) {
-        self.pb.rect(point.x, point.y, l as f32, w as f32);
+
+	fn DrawRect(&mut self, point: Point2D<f32,f32>, l: u32, w: u32, color: Color,) {
+        let mut pb = PathBuilder::new();
+
+        pb.move_to(point.x, point.y);
+        pb.rect(point.x, point.y, l as f32, w as f32);
+
+        pb.close();
+        self.dt.fill(&pb.finish(), &Source::Solid(SolidSource::from(color)), &DrawOptions::new());
     }
-    /// Instruction to the Render that a triangle needs to be drawn on the next Clipping
-    /// The triangle should be rendered between the absolute coordinates (x1, y1),
-    /// (x2, y2) and (x3, y3)
-    fn DrawTriangle(&mut self, pointA: Point2D<f32,f32>, pointB: Point2D<f32,f32>, pointC: Point2D<f32,f32>) {
-        self.pb.move_to(pointA.x, pointA.y);
-        self.pb.line_to(pointB.x,pointB.y);
-        self.pb.line_to(pointC.x,pointC.y);
-        self.pb.line_to(pointA.x,pointA.y);
+
+    fn DrawTriangle(&mut self, pointA: Point2D<f32,f32>, pointB: Point2D<f32,f32>, pointC: Point2D<f32,f32>, color: Color,) {
+        let mut pb = PathBuilder::new();
+
+        pb.move_to(pointA.x, pointA.y);
+        pb.line_to(pointB.x,pointB.y);
+        pb.line_to(pointC.x,pointC.y);
+
+        pb.close();
+        self.dt.fill(&pb.finish(), &Source::Solid(SolidSource::from(color)), &DrawOptions::new());
     }
-    /// Instruction to the Render that an image needs to be drawn on the next Clipping
-    /// [Doubt] The image should be rendered with center on the absolute coordinates (x, y)
-    /// and with 'w' width and 'l' length
+
     fn DrawImage(&mut self, point: Point2D<f32,f32>) {
-        
+        //self.dt.draw_image_with_size_at(width: f32, height: f32, x: f32, y: f32, image: &Image, options: &DrawOptions)
+        // [todo] how to insert image pointer here?
     }
-    /// Instruction to the Render that some text needs to be drawn on the next Clipping
-    /// [Doubt] The text should be rendered according to the text_alignment
-    fn DrawText(&mut self, point: Point2D<f32,f32>) {
 
+    fn DrawText(&mut self, point: Point2D<f32,f32>) {
+        let font = SystemSource::new()
+        .select_best_match(&[FamilyName::SansSerif], &Properties::new())
+        .unwrap()
+        .load()
+        .unwrap();
+
+        /*self.dt.draw_text(&font, 36., &pos_string, Point::new(0., 100.),
+                         &Source::Solid(SolidSource::from_unpremultiplied_argb(0xff, 0, 0, 0)),
+                         &DrawOptions::new(),
+                        );*/
+        //[todo] compiler is complaining about the wrong struct being used in $font, needs further investigation 
     }
 }
 
@@ -279,42 +352,51 @@ mod tests {
     }
 
     #[test]
-    fn test() {
+    fn drawing_to_file_test() {
         use raqote::*;
         use euclid::{Point2D};
         use super::*;
-        let mut dt = DrawTarget::new(400, 400);
-        let mut pb = PathBuilder::new();
-        let mut raqote = Raqote {pb: PathBuilder::new()};
 
-        let instruction = RenderInstruction::DrawLine { pointA: Point2D::new(10., 10.), pointB: Point2D::new(50., 50.)};
+        let mut raqote = Raqote {dt: DrawTarget::new(400, 400)};
 
-        raqote.draw(instruction);
-
-        //pb.move_to(10., 10.);
-        //pb.line_to(50.,50.);
+        let line = RenderInstruction::DrawLine { 
+            pointA: Point2D::new(100., 200.), 
+            pointB: Point2D::new(100., 350.), 
+            color: Color::new(0xff, 0xff, 0xff, 0xff)
+        };
+        let triangle = RenderInstruction::DrawTriangle { 
+            pointA: Point2D::new(100., 100.), 
+            pointB: Point2D::new(200., 200.), 
+            pointC: Point2D::new(100., 200.), 
+            color: Color::new(0xff, 0xff, 0x00, 0xff)
+        };
+        let rect = RenderInstruction::DrawRect { 
+            point: Point2D::new(300., 100.), 
+            width: 50, 
+            length: 100,
+            color: Color::new(0xff, 0xff, 0xf0, 0x00)
+        };
+        let arc = RenderInstruction::DrawArc { 
+            point: Point2D::new(300., 300.), 
+            r: 50., 
+            sang: 0., 
+            eang: 1.,
+            color: Color::new(0xff, 0x00, 0x00, 0x00)
+        };
         
-        raqote.pb.close();
-        let path = raqote.pb.finish();
-        dt.stroke(
-            &path,
-            &Source::Solid(SolidSource {
-                r: 0x80,
-                g: 0x80,
-                b: 0x80,
-                a: 0x80,
-            }),
-            &StrokeStyle {
-                cap: LineCap::Round,
-                join: LineJoin::Round,
-                width: 10.,
-                miter_limit: 2.,
-                dash_array: vec![10., 18.],
-                dash_offset: 16.,
-            },
-            &DrawOptions::new()
-        );
-        dt.write_png("result.png");
+        let circle = RenderInstruction::DrawCircle {
+            point: Point2D::new(100., 200.),
+            r: 100.,
+            color: Color::new(0xFF, 0x00, 0xAA, 0xAA)
+        };
+
+        raqote.draw(line);
+        raqote.draw(circle);
+        raqote.draw(triangle);
+        raqote.draw(rect);
+        raqote.draw(arc);
+
+        raqote.dt.write_png("result.png");
     }
 }
 

@@ -18,8 +18,11 @@ required-features = []      # Features required to build this target (N/A for li
 
 [dependencies]
 
-# raqote dependencies
+# raqote - Used for the 2d rendering context
 raqote = "0.8.0"
 
-# euclid
+# euclid - Used for some geometry operations
 euclid = "0.22.1"
+
+# font_kit - Used for the fonts
+font-kit = "0.10.0"
