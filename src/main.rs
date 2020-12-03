@@ -37,7 +37,7 @@ impl hyber::Display for DisplayMinifb {
                 title: display_descriptor.titled,
                 resize: display_descriptor.resizable,
                 topmost: display_descriptor.topmost,
-                scale: minifb::Scale::FitScreen,
+                scale: minifb::Scale::X1,
                 scale_mode: minifb::ScaleMode::UpperLeft,
                 transparency: false,
             },
