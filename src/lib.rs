@@ -6,7 +6,7 @@ use hyber::{
 use minifb;
 use raqote::{
     Color, DrawOptions, DrawTarget, LineCap, LineJoin, PathBuilder, SolidSource, Source,
-    StrokeStyle,
+    StrokeStyle, Point
 };
 // use std::os::raw; for window handle
 
@@ -114,7 +114,6 @@ impl Raqote {
             dt: DrawTarget::new(width, height),
         }
     }
-
     fn draw_point(&mut self, point: Point2D<f32, f32>, color: Color) {
         // [Doubt] Isn't the point basically a tiny circle?
     }
@@ -206,18 +205,17 @@ impl Raqote {
         // [todo] how to insert image pointer here?
     }
 
-    fn draw_text(&mut self, point: Point2D<f32, f32>) {
+    fn draw_text(&mut self, point: Point2D<f32, f32>, string: &str) {
         let font = SystemSource::new()
             .select_best_match(&[FamilyName::SansSerif], &Properties::new())
             .unwrap()
             .load()
             .unwrap();
-
-        /*self.dt.draw_text(&font, 36., &pos_string, Point::new(0., 100.),
+        
+        self.dt.draw_text(&font, 36., string, Point::new(point.x, point.y),
          &Source::Solid(SolidSource::from_unpremultiplied_argb(0xff, 0, 0, 0)),
          &DrawOptions::new(),
-        );*/
-        //[todo] compiler is complaining about the wrong struct being used in $font, needs further investigation
+        );
     }
 }
 
@@ -279,7 +277,7 @@ impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color> for Raqote {
                 color,
             } => self.draw_triangle(point_a, point_b, point_c, color),
             RenderInstruction::DrawImage { point } => self.draw_image(point),
-            RenderInstruction::DrawText { point } => self.draw_text(point),
+            RenderInstruction::DrawText { point, string } => self.draw_text(point, string),
         }
     }
 }
