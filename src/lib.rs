@@ -20,8 +20,20 @@ pub enum EventClient {
     ///All mouse events
     LeftClickPress,
     LeftClickRelease,
-    RightClick,
-    MiddleClick,
+    RightClickPress,
+    RightClickRelease,
+    MiddleClickPress,
+    MiddleClickRelease,
+    MouseMove{
+        x: f32,
+        y: f32,
+    },
+    MouseEntered,
+    MouseLeft,
+    Scroll{
+        x: f32,
+        y: f32,
+    }
 }
 
 pub enum MessageXPTO {
@@ -35,6 +47,7 @@ pub struct MouseState{
     pub button_left: bool,
     pub button_middle: bool,
     pub button_right: bool,
+    pub mouse_on_window: bool,
 }
 
 pub struct DisplayMinifb {
@@ -245,11 +258,29 @@ impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color> for Raqote {
             EventClient::LeftClickRelease => {
                 event::Event::Mouse(event::Mouse::ButtonReleased(event::MouseButton::Left))
             }
-            EventClient::RightClick => {
+            EventClient::RightClickPress => {
                 event::Event::Mouse(event::Mouse::ButtonPressed(event::MouseButton::Right))
             }
-            EventClient::MiddleClick => {
+            EventClient::RightClickRelease => {
+                event::Event::Mouse(event::Mouse::ButtonReleased(event::MouseButton::Right))
+            }
+            EventClient::MiddleClickPress => {
                 event::Event::Mouse(event::Mouse::ButtonPressed(event::MouseButton::Middle))
+            }
+            EventClient::MiddleClickRelease => {
+                event::Event::Mouse(event::Mouse::ButtonReleased(event::MouseButton::Middle))
+            }
+            EventClient::MouseMove{x: new_x,y: new_y} => {
+                event::Event::Mouse(event::Mouse::CursorMoved{x: new_x, y: new_y})
+            }
+            EventClient::MouseEntered => {
+                event::Event::Mouse(event::Mouse::CursorEntered)
+            }
+            EventClient::MouseLeft => {
+                event::Event::Mouse(event::Mouse::CursorLeft)
+            }
+            EventClient::Scroll{x: new_x, y: new_y} => {
+                event::Event::Mouse(event::Mouse::WheelScrolled{delta: event::ScrollDelta::Pixels{x: new_x, y: new_y}})
             }
         }
     }
@@ -257,9 +288,38 @@ impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color> for Raqote {
     fn detect_display_events(queue: &mut Queue<event::Event>, display: &mut DisplayMinifb) {
         if display.is_open() && !display.display.is_key_down(minifb::Key::Escape) {
             let left_button_down = display.display.get_mouse_down(minifb::MouseButton::Left);
-            /*if display.display.get_mouse_down(minifb::MouseButton::Left) {
-                queue.enqueue(Self::map_events(EventClient::LeftClickPress));
-            }*/
+            let right_button_down = display.display.get_mouse_down(minifb::MouseButton::Right);
+            let middle_button_down = display.display.get_mouse_down(minifb::MouseButton::Middle);
+            let mouse_position = display.display.get_mouse_pos(minifb::MouseMode::Pass);
+            
+            if mouse_position != Some(display.mouse_state.mouse_pos){
+                let mut x: f32 = 0f32;
+                let mut y: f32 = 0f32;
+                mouse_position.map(|mouse| {
+                    x = mouse.0;
+                    y = mouse.1;
+                });
+                if x<0f32 || x > 640f32 || y < 0f32 || y>360f32 { //mouse out of window
+                    if display.mouse_state.mouse_on_window {
+                        display.mouse_state.mouse_on_window = false;
+                        queue.enqueue(Self::map_events(EventClient::MouseLeft));
+                    }
+                }
+                if x>0f32 && x < 640f32 && y > 0f32 && y<360f32{ //mouse inside window
+                    queue.enqueue(Self::map_events(EventClient::MouseMove{x: x, y:y}));
+                    if !display.mouse_state.mouse_on_window{
+                        display.mouse_state.mouse_on_window = true;
+                        queue.enqueue(Self::map_events(EventClient::MouseEntered));
+                    }
+                }
+                display.mouse_state.mouse_pos = (x,y);
+            }
+
+            display.display.get_scroll_wheel().map(|scroll| {
+                queue.enqueue(Self::map_events(EventClient::Scroll{x: scroll.0, y: scroll.1}));
+            });
+
+
             if left_button_down != display.mouse_state.button_left {
                 if left_button_down{
                     queue.enqueue(Self::map_events(EventClient::LeftClickPress));
@@ -267,6 +327,22 @@ impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color> for Raqote {
                     queue.enqueue(Self::map_events(EventClient::LeftClickRelease));
                 }
                 display.mouse_state.button_left = left_button_down;
+            }
+            if right_button_down != display.mouse_state.button_right {
+                if right_button_down{
+                    queue.enqueue(Self::map_events(EventClient::RightClickPress));
+                } else {
+                    queue.enqueue(Self::map_events(EventClient::RightClickRelease));
+                }
+                display.mouse_state.button_right = right_button_down;
+            }
+            if middle_button_down != display.mouse_state.button_middle {
+                if middle_button_down{
+                    queue.enqueue(Self::map_events(EventClient::MiddleClickPress));
+                } else {
+                    queue.enqueue(Self::map_events(EventClient::MiddleClickRelease));
+                }
+                display.mouse_state.button_middle = middle_button_down;
             }
             
         }
