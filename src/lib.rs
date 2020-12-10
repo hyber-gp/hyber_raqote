@@ -17,8 +17,11 @@ use font_kit::source::SystemSource;
 use euclid::Point2D;
 
 pub enum EventClient {
-    LeftClick,
+    ///All mouse events
+    LeftClickPress,
+    LeftClickRelease,
     RightClick,
+    MiddleClick,
 }
 
 pub enum MessageXPTO {
@@ -26,8 +29,17 @@ pub enum MessageXPTO {
     Dfg,
 }
 
+#[derive(Default)]
+pub struct MouseState{
+    pub mouse_pos: (f32, f32),
+    pub button_left: bool,
+    pub button_middle: bool,
+    pub button_right: bool,
+}
+
 pub struct DisplayMinifb {
     pub display: minifb::Window,
+    pub mouse_state: MouseState,
 }
 
 impl Display for DisplayMinifb {
@@ -48,7 +60,7 @@ impl Display for DisplayMinifb {
                 transparency: false,
             },
         ) {
-            Ok(display) => DisplayMinifb { display: display },
+            Ok(display) => DisplayMinifb { display: display, mouse_state: MouseState::default() },
             Err(_) => panic!(),
         }
     }
@@ -101,6 +113,7 @@ impl Display for DisplayMinifb {
         self.display.is_active()
     }
 }
+
 
 /// A struct to save the drawtarget of raqote and to use as a reference for the primitives trait
 pub struct Raqote {
@@ -222,24 +235,40 @@ impl Raqote {
 }
 
 impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color> for Raqote {
+    
     type Message = MessageXPTO;
     fn map_events(event_client: EventClient) -> event::Event {
         match event_client {
-            EventClient::LeftClick => {
+            EventClient::LeftClickPress => {
                 event::Event::Mouse(event::Mouse::ButtonPressed(event::MouseButton::Left))
+            }
+            EventClient::LeftClickRelease => {
+                event::Event::Mouse(event::Mouse::ButtonReleased(event::MouseButton::Left))
             }
             EventClient::RightClick => {
                 event::Event::Mouse(event::Mouse::ButtonPressed(event::MouseButton::Right))
+            }
+            EventClient::MiddleClick => {
+                event::Event::Mouse(event::Mouse::ButtonPressed(event::MouseButton::Middle))
             }
         }
     }
 
     fn detect_display_events(queue: &mut Queue<event::Event>, display: &mut DisplayMinifb) {
         if display.is_open() && !display.display.is_key_down(minifb::Key::Escape) {
-            if display.display.get_mouse_down(minifb::MouseButton::Left) {
-                let event = Self::map_events(EventClient::LeftClick);
-                queue.enqueue(event);
+            let left_button_down = display.display.get_mouse_down(minifb::MouseButton::Left);
+            /*if display.display.get_mouse_down(minifb::MouseButton::Left) {
+                queue.enqueue(Self::map_events(EventClient::LeftClickPress));
+            }*/
+            if left_button_down != display.mouse_state.button_left {
+                if left_button_down{
+                    queue.enqueue(Self::map_events(EventClient::LeftClickPress));
+                } else {
+                    queue.enqueue(Self::map_events(EventClient::LeftClickRelease));
+                }
+                display.mouse_state.button_left = left_button_down;
             }
+            
         }
         // TODO: TEMPORARY CODE, SHOULD BE AMMENDED
         let buffer: Vec<u32> = vec![0; 640 * 360];
