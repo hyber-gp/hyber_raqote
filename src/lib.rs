@@ -16,6 +16,8 @@ use font_kit::source::SystemSource;
 
 use euclid::Point2D;
 
+use image::open;
+
 pub enum EventClient {
     LeftClick,
     RightClick,
@@ -24,6 +26,18 @@ pub enum EventClient {
 pub enum MessageXPTO {
     Abc,
     Dfg,
+}
+
+#[derive(Copy, Clone)]
+pub enum DrawImageOptions {
+    OriginalSize,
+    Resize {
+        width: f32,
+        height: f32,
+    },
+    ResizeMultiplyer {
+        mult: f32,
+    }
 }
 
 pub struct DisplayMinifb {
@@ -200,9 +214,23 @@ impl Raqote {
         );
     }
 
-    fn draw_image(&mut self, point: Point2D<f32, f32>) {
-        //self.dt.draw_image_with_size_at(width: f32, height: f32, x: f32, y: f32, image: &Image, options: &DrawOptions)
-        // [todo] how to insert image pointer here?
+    fn draw_image(&mut self, point: Point2D<f32, f32>, path: &str, options: DrawImageOptions) {
+        let rgba = open(path).unwrap().into_rgba();
+        let img: Vec<u32> = rgba.
+            pixels()
+            .map(|p| {
+                ((p[3] as u32) << 24) | ((p[0] as u32) << 16) | ((p[1] as u32) << 8) | (p[2] as u32)
+            })
+            .collect();
+        match options {
+            DrawImageOptions::OriginalSize => 
+                self.dt.draw_image_at(point.x, point.y, &raqote::Image { width:rgba.width() as i32, height: rgba.height() as i32, data: &img}, &DrawOptions::new()),
+            DrawImageOptions::Resize {width, height} => 
+                self.dt.draw_image_with_size_at(width, height,point.x, point.y, &raqote::Image { width:rgba.width() as i32, height: rgba.height() as i32, data: &img}, &DrawOptions::new()),
+            DrawImageOptions::ResizeMultiplyer {mult} => 
+                self.dt.draw_image_with_size_at(rgba.width() as f32*mult,rgba.height() as f32*mult,point.x, point.y, &raqote::Image { width:rgba.width() as i32, height: rgba.height() as i32, data: &img}, &DrawOptions::new()),
+        }
+        
     }
 
     fn draw_text(&mut self, point: Point2D<f32, f32>, string: &str) {
@@ -219,7 +247,7 @@ impl Raqote {
     }
 }
 
-impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color> for Raqote {
+impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color, DrawImageOptions> for Raqote {
     type Message = MessageXPTO;
     fn map_events(event_client: EventClient) -> event::Event {
         match event_client {
@@ -246,7 +274,7 @@ impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color> for Raqote {
 
     fn draw(
         &mut self,
-        instruction: RenderInstruction<Point2D<f32, f32>, Color>,
+        instruction: RenderInstruction<Point2D<f32, f32>, Color, DrawImageOptions>,
         display: &mut DisplayMinifb,
     ) {
         match instruction {
@@ -276,7 +304,7 @@ impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color> for Raqote {
                 point_c,
                 color,
             } => self.draw_triangle(point_a, point_b, point_c, color),
-            RenderInstruction::DrawImage { point } => self.draw_image(point),
+            RenderInstruction::DrawImage { point, path, options } => self.draw_image(point, path, options),
             RenderInstruction::DrawText { point, string } => self.draw_text(point, string),
         }
     }

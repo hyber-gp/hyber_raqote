@@ -52,10 +52,18 @@ fn main() {
         point: Point2D::new(250., 250.),
         string: "Test 123",
     };
+    let image = RenderInstruction::DrawImage {
+        point: Point2D::new(100., 100.),
+        path: "result.png",
+        options: hyber_raqote::DrawImageOptions::ResizeMultiplyer {mult: 1.},
+    };
 
     let size = display.get_size();
+       
     loop {
         raqote.dt.clear(SolidSource::from_unpremultiplied_argb(0xff, 0xff, 0xff, 0xff));
+        
+        raqote.draw(image, &mut display);
         raqote.draw(line, &mut display);
         raqote.draw(circle, &mut display);
         raqote.draw(triangle, &mut display);

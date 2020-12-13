@@ -2,12 +2,14 @@ use hyber;
 use hyber::renderer::RenderInstruction;
 use hyber::renderer::RenderInstructionCollection;
 
+use hyber_raqote::DrawImageOptions;
+
 use euclid::Point2D;
 use raqote::Color;
 use std::collections::BTreeMap;
 
 // Method to simulate an iteration over the Render Instructions on the Collection
-fn renderer(render: &BTreeMap<u32, Vec<RenderInstruction<Point2D<f32, f32>, Color>>>) {
+fn renderer(render: &BTreeMap<u32, Vec<RenderInstruction<Point2D<f32, f32>, Color, DrawImageOptions>>>) {
     // Create a Render Instruction Collection with the previous BTreeMap
     let _collection = RenderInstructionCollection {
         instructions: render,
@@ -33,7 +35,7 @@ fn renderer(render: &BTreeMap<u32, Vec<RenderInstruction<Point2D<f32, f32>, Colo
 }
 
 // Method to simulate the creation of frame 1
-fn frame_1(render: &mut BTreeMap<u32, Vec<RenderInstruction<Point2D<f32, f32>, Color>>>) {
+fn frame_1(render: &mut BTreeMap<u32, Vec<RenderInstruction<Point2D<f32, f32>, Color, DrawImageOptions>>>) {
     // Initialize a new vector to hold instructions
     // The vector will contain the widget's instructions list
     // This widget will have ID = 1
@@ -58,6 +60,7 @@ fn frame_1(render: &mut BTreeMap<u32, Vec<RenderInstruction<Point2D<f32, f32>, C
     });
     widget_1_instructions.push(RenderInstruction::DrawText {
         point: Point2D::new(0.0, 0.0),
+        string: "test"
     });
 
     widget_2_instructions.push(RenderInstruction::DrawLine {
@@ -68,6 +71,8 @@ fn frame_1(render: &mut BTreeMap<u32, Vec<RenderInstruction<Point2D<f32, f32>, C
 
     widget_3_instructions.push(RenderInstruction::DrawImage {
         point: Point2D::new(0.0, 0.0),
+        path: "image.png",
+        options: DrawImageOptions::OriginalSize,
     });
 
     widget_4_instructions.push(RenderInstruction::DrawCircle {
@@ -77,6 +82,7 @@ fn frame_1(render: &mut BTreeMap<u32, Vec<RenderInstruction<Point2D<f32, f32>, C
     });
     widget_4_instructions.push(RenderInstruction::DrawText {
         point: Point2D::new(0.0, 0.0),
+        string: "test",
     });
 
     // Insert those widget's instructions on the collection
@@ -88,7 +94,7 @@ fn frame_1(render: &mut BTreeMap<u32, Vec<RenderInstruction<Point2D<f32, f32>, C
 }
 
 // Method to simulate the creation of frame 2
-fn frame_2(render: &mut BTreeMap<u32, Vec<RenderInstruction<Point2D<f32, f32>, Color>>>) {
+fn frame_2(render: &mut BTreeMap<u32, Vec<RenderInstruction<Point2D<f32, f32>, Color, DrawImageOptions>>>) {
     // This widget will have ID = 2
     let widget_2_id = 2;
     let mut widget_2_instructions = Vec::new();
@@ -102,6 +108,7 @@ fn frame_2(render: &mut BTreeMap<u32, Vec<RenderInstruction<Point2D<f32, f32>, C
     });
     widget_2_instructions.push(RenderInstruction::DrawText {
         point: Point2D::new(0.0, 0.0),
+        string: "Test"
     });
 
     // Insert those widget's instructions on the collection
