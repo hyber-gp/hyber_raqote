@@ -44,7 +44,13 @@ pub enum EventClient {
     KeyReleased{
         key_code: hyber::key_code::KeyCode,
         modifiers: hyber::event::ModifiersState
-    }
+    },
+
+    //Window
+    WindowResize{
+        width: u32,
+        height: u32,
+    },
 }
 
 pub enum MessageXPTO {
@@ -61,9 +67,14 @@ pub struct MouseState{
     pub mouse_on_window: bool,
 }
 
+pub struct WindowState{
+    pub window_size: (usize,usize),
+}
+
 pub struct DisplayMinifb {
     pub display: minifb::Window,
     pub mouse_state: MouseState,
+    pub window_state: WindowState,
 }
 
 impl Display for DisplayMinifb {
@@ -84,7 +95,7 @@ impl Display for DisplayMinifb {
                 transparency: false,
             },
         ) {
-            Ok(display) => DisplayMinifb { display: display, mouse_state: MouseState::default() },
+            Ok(display) => DisplayMinifb { display: display, mouse_state: MouseState::default(),window_state: WindowState {window_size: (width,height)} },
             Err(_) => panic!(),
         }
     }
@@ -299,11 +310,13 @@ impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color> for Raqote {
             EventClient::KeyReleased{key_code: code, modifiers: mods} => {
                 event::Event::Keyboard(event::Keyboard::KeyReleased{key_code: code,modifiers: mods})
             }
-            
+            EventClient::WindowResize{width: new_width, height: new_height} => {
+                event::Event::Window(event::Window::Resized{width: new_width, height: new_height})
+            }
         }
     }
 
-    fn detect_display_events(queue: &mut Queue<event::Event>, display: &mut DisplayMinifb) {
+    fn detect_display_events(queue: &mut Queue<event::Event>, display: &mut DisplayMinifb, buffer: & Vec<u32>) {
         if display.is_open() && !display.display.is_key_down(minifb::Key::Escape) {
            
             //Mouse
@@ -311,7 +324,14 @@ impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color> for Raqote {
             let right_button_down = display.display.get_mouse_down(minifb::MouseButton::Right);
             let middle_button_down = display.display.get_mouse_down(minifb::MouseButton::Middle);
             let mouse_position = display.display.get_mouse_pos(minifb::MouseMode::Pass);
+            
+            //Window
+            let window_size = display.display.get_size();
 
+            if window_size != display.window_state.window_size{
+                queue.enqueue(Self::map_events(EventClient::WindowResize{width: window_size.0 as u32, height: window_size.1 as u32}));
+                display.window_state.window_size = window_size;
+            }
             
             if mouse_position != Some(display.mouse_state.mouse_pos){
                 let mut x: f32 = 0f32;
@@ -320,13 +340,15 @@ impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color> for Raqote {
                     x = mouse.0;
                     y = mouse.1;
                 });
-                if x<0f32 || x > 640f32 || y < 0f32 || y>360f32 { //mouse out of window
+                let window_width: f32 = display.display.get_size().0 as f32;
+                let window_weight: f32 = display.display.get_size().1 as f32;
+                if x<0f32 || x > window_width || y < 0f32 || y>window_weight { //mouse out of window
                     if display.mouse_state.mouse_on_window {
                         display.mouse_state.mouse_on_window = false;
                         queue.enqueue(Self::map_events(EventClient::MouseLeft));
                     }
                 }
-                if x>0f32 && x < 640f32 && y > 0f32 && y<360f32{ //mouse inside window
+                if x>0f32 && x < window_width && y > 0f32 && y<window_weight{ //mouse inside window
                     queue.enqueue(Self::map_events(EventClient::MouseMove{x: x, y:y}));
                     if !display.mouse_state.mouse_on_window{
                         display.mouse_state.mouse_on_window = true;
@@ -658,8 +680,9 @@ impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color> for Raqote {
             
         }
         // TODO: TEMPORARY CODE, SHOULD BE AMMENDED
-        let buffer: Vec<u32> = vec![0; 640 * 360];
-        display.update_with_buffer(&buffer, 640, 360);
+        //let buffer2: Vec<u32> = vec![0; display.display.get_size().0 * display.display.get_size().1];
+        display.update_with_buffer(buffer, 640 as usize, 360 as usize);
+        
     }
 
     fn draw(
