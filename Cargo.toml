@@ -21,13 +21,16 @@ required-features = []      # Features required to build this target (N/A for li
 minifb = "0.19.1"
 
 # hyber - The library to implement on raqote
-hyber =  { path = "C:/Users/diogo/Documents/Faculdade/GP/projects/hyber/"}
+hyber =  { path = ""}
 
 # raqote - Used for the 2d rendering context
-raqote = "0.8.0"
+raqote = "^0.8.0"
 
 # euclid - Used for some geometry operations
-euclid = "0.22.1"
+euclid = "^0.20.14"
 
 # font_kit - Used for the fonts
-font-kit = "0.10.0"
+font-kit = "^0.7.1"
+
+#image
+image = "^0.23.0"
