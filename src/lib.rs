@@ -53,6 +53,8 @@ pub enum EventClient {
         width: u32,
         height: u32,
     },
+
+    WindowClose,
 }
 
 pub enum MessageXPTO {
@@ -60,7 +62,7 @@ pub enum MessageXPTO {
     Dfg,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum DrawImageOptions {
     OriginalSize,
     Resize {
@@ -70,7 +72,8 @@ pub enum DrawImageOptions {
     ResizeMultiplyer {
         mult: f32,
     }
-  
+}
+
 #[derive(Default)]
 pub struct MouseState{
     pub mouse_pos: (f32, f32),
@@ -270,14 +273,14 @@ impl Raqote {
             })
             .collect();
         match options {
-            DrawImageOptions::OriginalSize => 
+            DrawImageOptions::OriginalSize =>
                 self.dt.draw_image_at(point.x, point.y, &raqote::Image { width:rgba.width() as i32, height: rgba.height() as i32, data: &img}, &DrawOptions::new()),
-            DrawImageOptions::Resize {width, height} => 
+            DrawImageOptions::Resize {width, height} =>
                 self.dt.draw_image_with_size_at(width, height,point.x, point.y, &raqote::Image { width:rgba.width() as i32, height: rgba.height() as i32, data: &img}, &DrawOptions::new()),
-            DrawImageOptions::ResizeMultiplyer {mult} => 
+            DrawImageOptions::ResizeMultiplyer {mult} =>
                 self.dt.draw_image_with_size_at(rgba.width() as f32*mult,rgba.height() as f32*mult,point.x, point.y, &raqote::Image { width:rgba.width() as i32, height: rgba.height() as i32, data: &img}, &DrawOptions::new()),
         }
-        
+
     }
 
     fn draw_text(&mut self, point: Point2D<f32, f32>, string: &str) {
@@ -286,14 +289,14 @@ impl Raqote {
             .unwrap()
             .load()
             .unwrap();
-        
+
         self.dt.draw_text(&font, 36., string, Point::new(point.x, point.y),
          &Source::Solid(SolidSource::from_unpremultiplied_argb(0xff, 0, 0, 0)),
          &DrawOptions::new(),
         );
     }
 }
-  
+
 impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color, DrawImageOptions> for Raqote {
     type Message = MessageXPTO;
     fn map_events(event_client: EventClient) -> event::Event {
@@ -337,18 +340,22 @@ impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color, DrawImageOpt
             EventClient::WindowResize{width: new_width, height: new_height} => {
                 event::Event::Window(event::Window::Resized{width: new_width, height: new_height})
             }
+            EventClient::WindowClose => {
+                event::Event::Window(event::Window::Close)
+            }
         }
     }
 
     fn detect_display_events(queue: &mut Queue<event::Event>, display: &mut DisplayMinifb, buffer: & Vec<u32>) {
-        if display.is_open() && !display.display.is_key_down(minifb::Key::Escape) {
-           
+        /// Detects if window is open (minimization counts as open)
+        if display.is_open() {
+
             //Mouse
             let left_button_down = display.display.get_mouse_down(minifb::MouseButton::Left);
             let right_button_down = display.display.get_mouse_down(minifb::MouseButton::Right);
             let middle_button_down = display.display.get_mouse_down(minifb::MouseButton::Middle);
             let mouse_position = display.display.get_mouse_pos(minifb::MouseMode::Pass);
-            
+
             //Window
             let window_size = display.display.get_size();
 
@@ -356,7 +363,7 @@ impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color, DrawImageOpt
                 queue.enqueue(Self::map_events(EventClient::WindowResize{width: window_size.0 as u32, height: window_size.1 as u32}));
                 display.window_state.window_size = window_size;
             }
-            
+
             if mouse_position != Some(display.mouse_state.mouse_pos){
                 let mut x: f32 = 0f32;
                 let mut y: f32 = 0f32;
@@ -412,8 +419,8 @@ impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color, DrawImageOpt
                 display.mouse_state.button_middle = middle_button_down;
             }
 
-            //Keyboard 
-            
+            //Keyboard
+
             //Check for key modifiers
             let mut shift = false;
             let mut control = false;
@@ -423,11 +430,11 @@ impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color, DrawImageOpt
             if display.display.is_key_down(minifb::Key::LeftShift) || display.display.is_key_down(minifb::Key::RightShift) {
                 shift = true;
             }
-            
+
             if display.display.is_key_down(minifb::Key::LeftCtrl) || display.display.is_key_down(minifb::Key::RightCtrl) {
                 control = true;
             }
-            
+
             if display.display.is_key_down(minifb::Key::LeftAlt) || display.display.is_key_down(minifb::Key::RightAlt) {
                 alt = true;
             }
@@ -454,11 +461,11 @@ impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color, DrawImageOpt
                         minifb::Key::B => queue.enqueue(Self::map_events(EventClient::KeyPressed{key_code:key_code::KeyCode::B, modifiers:event::ModifiersState{shift,control,alt,logo}})),
                         minifb::Key::C => if control {//Copy Event
                                             queue.enqueue(Self::map_events(EventClient::KeyPressed{key_code:key_code::KeyCode::Copy, modifiers:event::ModifiersState{shift,control,alt,logo}}))
-                                        }           
+                                        }
                                          else{
                                             queue.enqueue(Self::map_events(EventClient::KeyPressed{key_code:key_code::KeyCode::C, modifiers:event::ModifiersState{shift,control,alt,logo}}))
                                          }
-                                        
+
                         minifb::Key::D => queue.enqueue(Self::map_events(EventClient::KeyPressed{key_code:key_code::KeyCode::D, modifiers:event::ModifiersState{shift,control,alt,logo}})),
                         minifb::Key::E => queue.enqueue(Self::map_events(EventClient::KeyPressed{key_code:key_code::KeyCode::E, modifiers:event::ModifiersState{shift,control,alt,logo}})),
                         minifb::Key::F => queue.enqueue(Self::map_events(EventClient::KeyPressed{key_code:key_code::KeyCode::F, modifiers:event::ModifiersState{shift,control,alt,logo}})),
@@ -477,13 +484,12 @@ impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color, DrawImageOpt
                         minifb::Key::S => queue.enqueue(Self::map_events(EventClient::KeyPressed{key_code:key_code::KeyCode::S, modifiers:event::ModifiersState{shift,control,alt,logo}})),
                         minifb::Key::T => queue.enqueue(Self::map_events(EventClient::KeyPressed{key_code:key_code::KeyCode::T, modifiers:event::ModifiersState{shift,control,alt,logo}})),
                         minifb::Key::U => queue.enqueue(Self::map_events(EventClient::KeyPressed{key_code:key_code::KeyCode::U, modifiers:event::ModifiersState{shift,control,alt,logo}})),
-                        minifb::Key::V => 
+                        minifb::Key::V =>
                                         if control{ //Paste event
                                             queue.enqueue(Self::map_events(EventClient::KeyPressed{key_code:key_code::KeyCode::Paste, modifiers:event::ModifiersState{shift,control,alt,logo}}))
                                         }else{
                                             queue.enqueue(Self::map_events(EventClient::KeyPressed{key_code:key_code::KeyCode::V, modifiers:event::ModifiersState{shift,control,alt,logo}}))
                                         }
-
                         minifb::Key::W => queue.enqueue(Self::map_events(EventClient::KeyPressed{key_code:key_code::KeyCode::W, modifiers:event::ModifiersState{shift,control,alt,logo}})),
                         minifb::Key::X =>
                                         if control{ //Cut event
@@ -586,11 +592,11 @@ impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color, DrawImageOpt
                         minifb::Key::B => queue.enqueue(Self::map_events(EventClient::KeyReleased{key_code:key_code::KeyCode::B, modifiers:event::ModifiersState{shift,control,alt,logo}})),
                         minifb::Key::C => if control {//Copy Event
                                             queue.enqueue(Self::map_events(EventClient::KeyReleased{key_code:key_code::KeyCode::Copy, modifiers:event::ModifiersState{shift,control,alt,logo}}))
-                                        }           
+                                        }
                                          else{
                                             queue.enqueue(Self::map_events(EventClient::KeyReleased{key_code:key_code::KeyCode::C, modifiers:event::ModifiersState{shift,control,alt,logo}}))
                                          }
-                                        
+
                         minifb::Key::D => queue.enqueue(Self::map_events(EventClient::KeyReleased{key_code:key_code::KeyCode::D, modifiers:event::ModifiersState{shift,control,alt,logo}})),
                         minifb::Key::E => queue.enqueue(Self::map_events(EventClient::KeyReleased{key_code:key_code::KeyCode::E, modifiers:event::ModifiersState{shift,control,alt,logo}})),
                         minifb::Key::F => queue.enqueue(Self::map_events(EventClient::KeyReleased{key_code:key_code::KeyCode::F, modifiers:event::ModifiersState{shift,control,alt,logo}})),
@@ -609,7 +615,7 @@ impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color, DrawImageOpt
                         minifb::Key::S => queue.enqueue(Self::map_events(EventClient::KeyReleased{key_code:key_code::KeyCode::S, modifiers:event::ModifiersState{shift,control,alt,logo}})),
                         minifb::Key::T => queue.enqueue(Self::map_events(EventClient::KeyReleased{key_code:key_code::KeyCode::T, modifiers:event::ModifiersState{shift,control,alt,logo}})),
                         minifb::Key::U => queue.enqueue(Self::map_events(EventClient::KeyReleased{key_code:key_code::KeyCode::U, modifiers:event::ModifiersState{shift,control,alt,logo}})),
-                        minifb::Key::V => 
+                        minifb::Key::V =>
                                         if control{ //Paste event
                                             queue.enqueue(Self::map_events(EventClient::KeyReleased{key_code:key_code::KeyCode::Paste, modifiers:event::ModifiersState{shift,control,alt,logo}}))
                                         }else{
@@ -700,13 +706,13 @@ impl Renderer<DisplayMinifb, EventClient, Point2D<f32, f32>, Color, DrawImageOpt
                 }
             });
 
-
-            
+        } else {
+            queue.enqueue(Self::map_events(EventClient::WindowClose));
         }
         // TODO: TEMPORARY CODE, SHOULD BE AMMENDED
         //let buffer2: Vec<u32> = vec![0; display.display.get_size().0 * display.display.get_size().1];
         display.update_with_buffer(buffer, 640 as usize, 360 as usize);
-        
+
     }
 
     fn draw(

@@ -8,7 +8,7 @@ const HEIGHT: usize = 360;
 
 fn main() {
     let mut display = hyber_raqote::DisplayMinifb::new(
-        "Test - ESC to exit",
+        "Test",
         WIDTH,
         HEIGHT,
         hyber::display::DisplayDescritor {resizable: true,..hyber::display::DisplayDescritor::default()},
