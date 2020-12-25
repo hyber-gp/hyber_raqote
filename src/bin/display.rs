@@ -5,8 +5,10 @@ use hyber::renderer::RenderInstruction;
 use hyber::renderer::RenderInstructionCollection;
 use hyber::renderer::Renderer;
 use hyber::util::Color;
+use hyber::util::IDMachine;
 use hyber::util::Point;
-use hyber_raqote;
+use hyber::widget::*;
+use hyber_raqote::MessageXPTO;
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 360;
@@ -22,7 +24,7 @@ fn main() {
         },
     );
 
-    let line = RenderInstruction::DrawLine {
+    /*let line = RenderInstruction::DrawLine {
         point_a: Point { x: 100.0, y: 200.0 },
         point_b: Point { x: 100.0, y: 350.0 },
         color: Color {
@@ -46,7 +48,7 @@ fn main() {
     let rect = RenderInstruction::DrawRect {
         point: Point { x: 300.0, y: 100.0 },
         width: 50,
-        length: 100,
+        height: 100,
         color: Color {
             a: 0xff,
             r: 0xff,
@@ -87,12 +89,49 @@ fn main() {
             height: 50.0,
             width: 50.0,
         },
-    };
+    };*/
 
-    let instructions = vec![line, circle, triangle, rect, arc, text];
+    let mut id_machine = IDMachine::new();
 
     let mut collection = RenderInstructionCollection::new();
-    collection.replace_or_insert(0, instructions);
+
+    let mut root = RootWidget::<MessageXPTO>::new(display.get_size(), Axis::Vertical);
+
+    let mut label = LabelWidget::<MessageXPTO>::new(
+        String::from("Teste!"),
+        (200, 350),
+        Color {
+            a: 0xff,
+            r: 0xff,
+            g: 0x00,
+            b: 0x00,
+        },
+        Axis::Vertical,
+    );
+
+    let mut label_2 = LabelWidget::<MessageXPTO>::new(
+        String::from("Teste2!"),
+        (100, 100),
+        Color {
+            a: 0xff,
+            r: 0x00,
+            g: 0xff,
+            b: 0x00,
+        },
+        Axis::Vertical,
+    );
+
+    root.add_as_child(Box::new(label));
+    root.add_as_child(Box::new(label_2));
+
+    root.build(
+        0,
+        0,
+        display.get_size().0,
+        display.get_size().1,
+        &mut id_machine,
+        &mut collection,
+    );
 
     let mut renderer = hyber_raqote::Raqote::new(WIDTH as i32, HEIGHT as i32);
     let events = renderer.create_events_queue();

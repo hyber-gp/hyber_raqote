@@ -337,10 +337,10 @@ impl Raqote {
             RenderInstruction::DrawCircle { point, r, color } => self.draw_circle(point, *r, color),
             RenderInstruction::DrawRect {
                 point,
-                length,
+                height,
                 width,
                 color,
-            } => self.draw_rectangle(point, *length, *width, color),
+            } => self.draw_rectangle(point, *height, *width, color),
             RenderInstruction::DrawTriangle {
                 point_a,
                 point_b,
@@ -2886,13 +2886,13 @@ impl Renderer<DisplayMinifb, EventClient> for Raqote {
         display: &mut DisplayMinifb,
     ) {
         self.dt.clear(SolidSource::from_unpremultiplied_argb(
-            0xff, 0x00, 0x00, 0x00,
+            0xff, 0xff, 0xff, 0xff,
         ));
         let size = display.get_size();
         if size.0 as i32 != self.dt.width() || size.1 as i32 != self.dt.height() {
             self.dt = DrawTarget::new(size.0 as i32, size.1 as i32);
         }
-        for (key, instructions) in collection.pairs.iter() {
+        for (_key, instructions) in collection.pairs.iter() {
             for instruction in instructions {
                 self.draw(instruction);
             }
