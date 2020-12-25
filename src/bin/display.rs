@@ -6,7 +6,7 @@ use hyber::renderer::RenderInstructionCollection;
 use hyber::renderer::Renderer;
 use hyber::util::Color;
 use hyber::util::IDMachine;
-use hyber::util::Point;
+use hyber::util::Vector2D;
 use hyber::widget::*;
 use hyber_raqote::MessageXPTO;
 
@@ -25,8 +25,8 @@ fn main() {
     );
 
     /*let line = RenderInstruction::DrawLine {
-        point_a: Point { x: 100.0, y: 200.0 },
-        point_b: Point { x: 100.0, y: 350.0 },
+        point_a: Vector2D { x: 100.0, y: 200.0 },
+        point_b: Vector2D { x: 100.0, y: 350.0 },
         color: Color {
             a: 0xff,
             r: 0xff,
@@ -35,9 +35,9 @@ fn main() {
         },
     };
     let triangle = RenderInstruction::DrawTriangle {
-        point_a: Point { x: 100.0, y: 100.0 },
-        point_b: Point { x: 200.0, y: 200.0 },
-        point_c: Point { x: 100.0, y: 200.0 },
+        point_a: Vector2D { x: 100.0, y: 100.0 },
+        point_b: Vector2D { x: 200.0, y: 200.0 },
+        point_c: Vector2D { x: 100.0, y: 200.0 },
         color: Color {
             a: 0xff,
             r: 0xff,
@@ -46,7 +46,7 @@ fn main() {
         },
     };
     let rect = RenderInstruction::DrawRect {
-        point: Point { x: 300.0, y: 100.0 },
+        point: Vector2D { x: 300.0, y: 100.0 },
         width: 50,
         height: 100,
         color: Color {
@@ -57,7 +57,7 @@ fn main() {
         },
     };
     let arc = RenderInstruction::DrawArc {
-        point: Point { x: 300.0, y: 300.0 },
+        point: Vector2D { x: 300.0, y: 300.0 },
         r: 50.,
         s_ang: 0.,
         e_ang: 1.,
@@ -69,7 +69,7 @@ fn main() {
         },
     };
     let circle = RenderInstruction::DrawCircle {
-        point: Point { x: 100.0, y: 200.0 },
+        point: Vector2D { x: 100.0, y: 200.0 },
         r: 100.,
         color: Color {
             a: 0xff,
@@ -79,11 +79,11 @@ fn main() {
         },
     };
     let text = RenderInstruction::DrawText {
-        point: Point { x: 250.0, y: 250.0 },
+        point: Vector2D { x: 250.0, y: 250.0 },
         string: String::from("Test 123"),
     };
     let image = RenderInstruction::DrawImage {
-        point: Point { x: 200.0, y: 100.0 },
+        point: Vector2D { x: 200.0, y: 100.0 },
         path: String::from("result.png"),
         options: DrawImageOptions::Resize {
             height: 50.0,
@@ -95,40 +95,47 @@ fn main() {
 
     let mut collection = RenderInstructionCollection::new();
 
-    let mut root = RootWidget::<MessageXPTO>::new(display.get_size(), Axis::Vertical);
+    let mut root = RootWidget::<MessageXPTO>::new(
+        display.get_size(),
+        Color::new(0xff, 0xff, 0xff, 0xaa),
+        Axis::Vertical,
+    );
 
     let mut label = LabelWidget::<MessageXPTO>::new(
         String::from("Teste!"),
-        (200, 350),
-        Color {
-            a: 0xff,
-            r: 0xff,
-            g: 0x00,
-            b: 0x00,
-        },
+        Vector2D::new(200, 150),
+        Color::new(0xff, 0xff, 0x00, 0x00),
         Axis::Vertical,
     );
 
-    let mut label_2 = LabelWidget::<MessageXPTO>::new(
+    let label_2 = LabelWidget::<MessageXPTO>::new(
         String::from("Teste2!"),
-        (100, 100),
-        Color {
-            a: 0xff,
-            r: 0x00,
-            g: 0xff,
-            b: 0x00,
-        },
+        Vector2D::new(100, 100),
+        Color::new(0xff, 0x00, 0xff, 0x00),
         Axis::Vertical,
     );
 
+    let label_1_1 = LabelWidget::<MessageXPTO>::new(
+        String::from("Teste1!"),
+        Vector2D::new(2000, 40),
+        Color::new(0xff, 0xff, 0xaa, 0x00),
+        Axis::Vertical,
+    );
+    let label_1_2 = LabelWidget::<MessageXPTO>::new(
+        String::from("Teste1!"),
+        Vector2D::new(20, 150),
+        Color::new(0xff, 0xaa, 0xff, 0x00),
+        Axis::Vertical,
+    );
+
+    label.add_as_child(Box::new(label_1_1));
+    label.add_as_child(Box::new(label_1_2));
     root.add_as_child(Box::new(label));
     root.add_as_child(Box::new(label_2));
 
     root.build(
-        0,
-        0,
-        display.get_size().0,
-        display.get_size().1,
+        Vector2D::new(0, 0),
+        display.get_size(),
         &mut id_machine,
         &mut collection,
     );

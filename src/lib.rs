@@ -1,7 +1,7 @@
 use hyber::{
     display::Display, display::DisplayDescritor, event, key_code, renderer::DrawImageOptions,
     renderer::RenderInstruction, renderer::RenderInstructionCollection, renderer::Renderer,
-    util::Color, util::Point, util::Queue,
+    util::Color, util::Queue, util::Vector2D,
 };
 
 use minifb;
@@ -146,8 +146,8 @@ impl Display for DisplayMinifb {
     fn set_background_color(&mut self, red: usize, green: usize, blue: usize) {
         self.display.set_background_color(red, green, blue);
     }
-    fn get_size(&self) -> (usize, usize) {
-        self.display.get_size()
+    fn get_size(&self) -> Vector2D {
+        Vector2D::from_tuple(self.display.get_size())
     }
 
     fn is_active(&mut self) -> bool {
@@ -166,14 +166,21 @@ impl Raqote {
             dt: DrawTarget::new(width, height),
         }
     }
-    fn draw_point(&mut self, point: &Point, color: &Color) {
+
+    fn clear(&mut self, color: &Color) {
+        self.dt.clear(SolidSource::from_unpremultiplied_argb(
+            color.a, color.r, color.g, color.b,
+        ));
+    }
+
+    fn draw_point(&mut self, point: &Vector2D, color: &Color) {
         // [Doubt] Isn't the point basically a tiny circle?
     }
 
-    fn draw_line(&mut self, point_a: &Point, point_b: &Point, color: &Color) {
+    fn draw_line(&mut self, point_a: &Vector2D, point_b: &Vector2D, color: &Color) {
         let mut pb = PathBuilder::new();
-        pb.move_to(point_a.x, point_a.y);
-        pb.line_to(point_b.x, point_b.y);
+        pb.move_to(point_a.x as f32, point_a.y as f32);
+        pb.line_to(point_b.x as f32, point_b.y as f32);
         pb.close();
         self.dt.stroke(
             &pb.finish(),
@@ -192,10 +199,16 @@ impl Raqote {
         );
     }
 
-    fn draw_arc(&mut self, point: &Point, r: f32, s_ang: f32, e_ang: f32, color: &Color) {
+    fn draw_arc(&mut self, point: &Vector2D, r: usize, s_ang: usize, e_ang: usize, color: &Color) {
         let mut pb = PathBuilder::new();
-        pb.move_to(point.x, point.y);
-        pb.arc(point.x, point.y, r, s_ang, e_ang);
+        pb.move_to(point.x as f32, point.y as f32);
+        pb.arc(
+            point.x as f32,
+            point.y as f32,
+            r as f32,
+            s_ang as f32,
+            e_ang as f32,
+        );
 
         pb.close();
         self.dt.fill(
@@ -207,11 +220,11 @@ impl Raqote {
         );
     }
 
-    fn draw_circle(&mut self, point: &Point, r: f32, color: &Color) {
+    fn draw_circle(&mut self, point: &Vector2D, r: usize, color: &Color) {
         let mut pb = PathBuilder::new();
 
-        pb.move_to(point.x, point.y);
-        pb.arc(point.x, point.y, r, 0., 7.);
+        pb.move_to(point.x as f32, point.y as f32);
+        pb.arc(point.x as f32, point.y as f32, r as f32, 0., 7.);
 
         pb.close();
         self.dt.fill(
@@ -223,11 +236,11 @@ impl Raqote {
         );
     }
 
-    fn draw_rectangle(&mut self, point: &Point, l: u32, w: u32, color: &Color) {
+    fn draw_rectangle(&mut self, point: &Vector2D, size: &Vector2D, color: &Color) {
         let mut pb = PathBuilder::new();
 
-        pb.move_to(point.x, point.y);
-        pb.rect(point.x, point.y, l as f32, w as f32);
+        pb.move_to(point.x as f32, point.y as f32);
+        pb.rect(point.x as f32, point.y as f32, size.x as f32, size.y as f32);
 
         pb.close();
         self.dt.fill(
@@ -239,12 +252,18 @@ impl Raqote {
         );
     }
 
-    fn draw_triangle(&mut self, point_a: &Point, point_b: &Point, point_c: &Point, color: &Color) {
+    fn draw_triangle(
+        &mut self,
+        point_a: &Vector2D,
+        point_b: &Vector2D,
+        point_c: &Vector2D,
+        color: &Color,
+    ) {
         let mut pb = PathBuilder::new();
 
-        pb.move_to(point_a.x, point_a.y);
-        pb.line_to(point_b.x, point_b.y);
-        pb.line_to(point_c.x, point_c.y);
+        pb.move_to(point_a.x as f32, point_a.y as f32);
+        pb.line_to(point_b.x as f32, point_b.y as f32);
+        pb.line_to(point_c.x as f32, point_c.y as f32);
 
         pb.close();
         self.dt.fill(
@@ -256,7 +275,7 @@ impl Raqote {
         );
     }
 
-    fn draw_image(&mut self, point: &Point, path: &str, options: &DrawImageOptions) {
+    fn draw_image(&mut self, point: &Vector2D, path: &str, options: &DrawImageOptions) {
         let rgba = open(path).unwrap().into_rgba8();
         let img: Vec<u32> = rgba
             .pixels()
@@ -266,8 +285,8 @@ impl Raqote {
             .collect();
         match options {
             DrawImageOptions::OriginalSize => self.dt.draw_image_at(
-                point.x,
-                point.y,
+                point.x as f32,
+                point.y as f32,
                 &raqote::Image {
                     width: rgba.width() as i32,
                     height: rgba.height() as i32,
@@ -276,10 +295,10 @@ impl Raqote {
                 &DrawOptions::new(),
             ),
             DrawImageOptions::Resize { width, height } => self.dt.draw_image_with_size_at(
-                *width,
-                *height,
-                point.x,
-                point.y,
+                *width as f32,
+                *height as f32,
+                point.x as f32,
+                point.y as f32,
                 &raqote::Image {
                     width: rgba.width() as i32,
                     height: rgba.height() as i32,
@@ -288,10 +307,10 @@ impl Raqote {
                 &DrawOptions::new(),
             ),
             DrawImageOptions::ResizeMultiplyer { mult } => self.dt.draw_image_with_size_at(
-                rgba.width() as f32 * mult,
-                rgba.height() as f32 * mult,
-                point.x,
-                point.y,
+                rgba.width() as f32 * *mult as f32,
+                rgba.height() as f32 * *mult as f32,
+                point.x as f32,
+                point.y as f32,
                 &raqote::Image {
                     width: rgba.width() as i32,
                     height: rgba.height() as i32,
@@ -302,7 +321,7 @@ impl Raqote {
         }
     }
 
-    fn draw_text(&mut self, point: &Point, string: &str) {
+    fn draw_text(&mut self, point: &Vector2D, string: &str) {
         let font = SystemSource::new()
             .select_best_match(&[FamilyName::SansSerif], &Properties::new())
             .unwrap()
@@ -313,7 +332,7 @@ impl Raqote {
             &font,
             36.,
             string,
-            raqote::Point::new(point.x, point.y),
+            raqote::Point::new(point.x as f32, point.y as f32),
             &Source::Solid(SolidSource::from_unpremultiplied_argb(0xff, 0, 0, 0)),
             &DrawOptions::new(),
         );
@@ -321,6 +340,7 @@ impl Raqote {
 
     pub fn draw(&mut self, instruction: &RenderInstruction) {
         match instruction {
+            RenderInstruction::Clear { color } => self.clear(color),
             RenderInstruction::DrawPoint { point, color } => self.draw_point(point, color),
             RenderInstruction::DrawLine {
                 point_a,
@@ -335,12 +355,9 @@ impl Raqote {
                 color,
             } => self.draw_arc(point, *r, *s_ang, *e_ang, color),
             RenderInstruction::DrawCircle { point, r, color } => self.draw_circle(point, *r, color),
-            RenderInstruction::DrawRect {
-                point,
-                height,
-                width,
-                color,
-            } => self.draw_rectangle(point, *height, *width, color),
+            RenderInstruction::DrawRect { point, size, color } => {
+                self.draw_rectangle(point, size, color)
+            }
             RenderInstruction::DrawTriangle {
                 point_a,
                 point_b,
@@ -379,13 +396,19 @@ impl Renderer<DisplayMinifb, EventClient> for Raqote {
                 event::Event::Mouse(event::Mouse::ButtonReleased(event::MouseButton::Middle))
             }
             EventClient::MouseMove { x: new_x, y: new_y } => {
-                event::Event::Mouse(event::Mouse::CursorMoved { x: new_x, y: new_y })
+                event::Event::Mouse(event::Mouse::CursorMoved {
+                    x: new_x as usize,
+                    y: new_y as usize,
+                })
             }
             EventClient::MouseEntered => event::Event::Mouse(event::Mouse::CursorEntered),
             EventClient::MouseLeft => event::Event::Mouse(event::Mouse::CursorLeft),
             EventClient::Scroll { x: new_x, y: new_y } => {
                 event::Event::Mouse(event::Mouse::WheelScrolled {
-                    delta: event::ScrollDelta::Pixels { x: new_x, y: new_y },
+                    delta: event::ScrollDelta::Pixels {
+                        x: new_x as usize,
+                        y: new_y as usize,
+                    },
                 })
             }
             EventClient::KeyPressed {
@@ -2885,12 +2908,10 @@ impl Renderer<DisplayMinifb, EventClient> for Raqote {
         collection: &RenderInstructionCollection,
         display: &mut DisplayMinifb,
     ) {
-        self.dt.clear(SolidSource::from_unpremultiplied_argb(
-            0xff, 0xff, 0xff, 0xff,
-        ));
         let size = display.get_size();
-        if size.0 as i32 != self.dt.width() || size.1 as i32 != self.dt.height() {
-            self.dt = DrawTarget::new(size.0 as i32, size.1 as i32);
+        if size.x as i32 != self.dt.width() || size.y as i32 != self.dt.height() {
+            self.dt = DrawTarget::new(size.x as i32, size.y as i32);
+            println!("YES!");
         }
         for (_key, instructions) in collection.pairs.iter() {
             for instruction in instructions {
@@ -2900,7 +2921,7 @@ impl Renderer<DisplayMinifb, EventClient> for Raqote {
 
         display
             .display
-            .update_with_buffer(self.dt.get_data(), size.0, size.1)
+            .update_with_buffer(self.dt.get_data(), size.x, size.y)
             .unwrap();
     }
 }
