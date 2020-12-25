@@ -63,13 +63,13 @@ fn main() {
     loop {
         raqote.dt.clear(SolidSource::from_unpremultiplied_argb(0xff, 0xff, 0xff, 0xff));
         
-        raqote.draw(image, &mut display);
-        raqote.draw(line, &mut display);
-        raqote.draw(circle, &mut display);
-        raqote.draw(triangle, &mut display);
-        raqote.draw(rect, &mut display);
-        raqote.draw(arc, &mut display);
-        raqote.draw(text, &mut display);
+        raqote.draw(&image, &mut display);
+        raqote.draw(&line, &mut display);
+        raqote.draw(&circle, &mut display);
+        raqote.draw(&triangle, &mut display);
+        raqote.draw(&rect, &mut display);
+        raqote.draw(&arc, &mut display);
+        raqote.draw(&text, &mut display);
 
         display.display.update_with_buffer(raqote.dt.get_data(), size.0, size.1).unwrap();
     }
