@@ -321,7 +321,7 @@ impl Raqote {
         }
     }
 
-    fn draw_text(&mut self, point: &Vector2D, string: &str) {
+    fn draw_text(&mut self, point: &Vector2D, font_size: usize, string: &str, color: &Color) {
         let font = SystemSource::new()
             .select_best_match(&[FamilyName::SansSerif], &Properties::new())
             .unwrap()
@@ -330,10 +330,12 @@ impl Raqote {
 
         self.dt.draw_text(
             &font,
-            36.,
+            font_size as f32,
             string,
             raqote::Point::new(point.x as f32, point.y as f32),
-            &Source::Solid(SolidSource::from_unpremultiplied_argb(0xff, 0, 0, 0)),
+            &Source::Solid(SolidSource::from_unpremultiplied_argb(
+                color.a, color.r, color.g, color.b,
+            )),
             &DrawOptions::new(),
         );
     }
@@ -369,7 +371,12 @@ impl Raqote {
                 path,
                 options,
             } => self.draw_image(point, path, options),
-            RenderInstruction::DrawText { point, string } => self.draw_text(point, string),
+            RenderInstruction::DrawText {
+                point,
+                font_size,
+                string,
+                color,
+            } => self.draw_text(point, *font_size, string, color),
         }
     }
 }
