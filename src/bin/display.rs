@@ -1,6 +1,8 @@
-use hyber;
 use hyber::display::Display;
+use hyber::event::Event;
+use hyber::event::Mouse::CursorMoved;
 use hyber::renderer::DrawImageOptions;
+use hyber::renderer::Message;
 use hyber::renderer::RenderInstruction;
 use hyber::renderer::RenderInstructionCollection;
 use hyber::renderer::Renderer;
@@ -8,10 +10,99 @@ use hyber::util::Color;
 use hyber::util::IDMachine;
 use hyber::util::Vector2D;
 use hyber::widget::*;
-use hyber_raqote::MessageXPTO;
+
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::rc::Weak;
 
 const WIDTH: usize = 640;
 const HEIGHT: usize = 360;
+
+#[derive(Clone)]
+pub enum MessageXPTO {
+    Increment {
+        label_ptr: Weak<RefCell<LabelWidget>>,
+        num_ptr: Weak<RefCell<i64>>,
+        event: Option<Event>,
+    },
+    Decrement {
+        label_ptr: Weak<RefCell<LabelWidget>>,
+        num_ptr: Weak<RefCell<i64>>,
+        event: Option<Event>,
+    },
+    Resize {
+        label_ptr: Weak<RefCell<LabelWidget>>,
+        event: Option<Event>,
+    },
+}
+
+// t uconsegues :) we are rooting for you
+impl Message for MessageXPTO {
+    fn update(&self) {
+        match self {
+            MessageXPTO::Increment {
+                label_ptr,
+                num_ptr,
+                event,
+            } => {
+                if let Some(label) = label_ptr.upgrade() {
+                    if let Some(num) = num_ptr.upgrade() {
+                        *num.borrow_mut() += 1;
+                        label
+                            .borrow_mut()
+                            .set_text(String::from(format!("{}", *num.borrow())));
+                    }
+                }
+            }
+            MessageXPTO::Decrement {
+                label_ptr,
+                num_ptr,
+                event,
+            } => {
+                if let Some(label) = label_ptr.upgrade() {
+                    if let Some(num) = num_ptr.upgrade() {
+                        *num.borrow_mut() -= 1;
+                        label
+                            .borrow_mut()
+                            .set_text(String::from(format!("{}", *num.borrow())));
+                    }
+                }
+            }
+            MessageXPTO::Resize { label_ptr, event } => {
+                if let Some(label) = label_ptr.upgrade() {
+                    if let Some(Event::Mouse(CursorMoved { x, y })) = event {
+                        label.borrow_mut().set_size(Vector2D::new(*x, *y))
+                    }
+                }
+            }
+        }
+    }
+
+    fn set_event(&mut self, new_event: Event) {
+        match self {
+            MessageXPTO::Increment {
+                label_ptr: _,
+                num_ptr: _,
+                event,
+            } => {
+                *event = Some(new_event);
+            }
+            MessageXPTO::Decrement {
+                label_ptr: _,
+                num_ptr: _,
+                event,
+            } => {
+                *event = Some(new_event);
+            }
+            MessageXPTO::Resize {
+                label_ptr: _,
+                event,
+            } => {
+                *event = Some(new_event);
+            }
+        }
+    }
+}
 
 fn main() {
     let mut display = hyber_raqote::DisplayMinifb::new(
@@ -23,58 +114,58 @@ fn main() {
             ..hyber::display::DisplayDescritor::default()
         },
     );
-    
     let mut id_machine = IDMachine::new();
 
     let mut collection = RenderInstructionCollection::new();
 
-    let mut root = RootWidget::<MessageXPTO>::new(
-        display.get_size(),
-        Color::new(0xff, 0xff, 0xff, 0xff),
-        Axis::Vertical,
-    );
-
-    let mut label = LabelWidget::<MessageXPTO>::new(
+    let label = Rc::new(RefCell::new(LabelWidget::new(
         String::from("Teste!"),
         Vector2D::new(200, 150),
         80,
         Color::from_hex(0xffffed00),
         Color::from_hex(0xff750787),
         Axis::Vertical,
-    );
+    )));
 
-    let label_2 = LabelWidget::<MessageXPTO>::new(
+    let label_2 = Rc::new(RefCell::new(LabelWidget::new(
         String::from("Teste2!"),
         Vector2D::new(100, 100),
         33,
         Color::from_hex(0xff008026),
         Color::from_hex(0xff004dff),
         Axis::Vertical,
-    );
+    )));
 
-    let label_1_1 = LabelWidget::<MessageXPTO>::new(
-        String::from("Teste1!"),
-        Vector2D::new(2000, 40),
-        50,
-        Color::from_hex(0xffe40303),
-        Color::new(0xff, 0xff, 0x00, 0xff),
-        Axis::Vertical,
-    );
-    let label_1_2 = LabelWidget::<MessageXPTO>::new(
-        String::from("Teste1!"),
-        Vector2D::new(20, 150),
-        6,
-        Color::from_hex(0xffff8c00),
+    let counter = Rc::new(RefCell::new(0));
+
+    let root = Rc::new(RefCell::new(RootWidget::new(
+        display.get_size(),
         Color::new(0xff, 0xff, 0xff, 0xff),
         Axis::Vertical,
-    );
+        Box::new(MessageXPTO::Increment {
+            label_ptr: Rc::downgrade(&label),
+            num_ptr: Rc::downgrade(&counter),
+            event: None,
+        }),
+        Box::new(MessageXPTO::Decrement {
+            label_ptr: Rc::downgrade(&label),
+            num_ptr: Rc::downgrade(&counter),
+            event: None,
+        }),
+        Box::new(MessageXPTO::Resize {
+            label_ptr: Rc::downgrade(&label),
+            event: None,
+        }),
+    )));
 
-    label.add_as_child(Box::new(label_1_1));
-    label.add_as_child(Box::new(label_1_2));
-    root.add_as_child(Box::new(label));
-    root.add_as_child(Box::new(label_2));
+    // definir relaçoes de parentesco
+    root.borrow_mut()
+        .add_as_child(Rc::downgrade(&label) as Weak<RefCell<dyn Widget>>);
+    root.borrow_mut()
+        .add_as_child(Rc::downgrade(&label_2) as Weak<RefCell<dyn Widget>>);
 
-    root.build(
+    // chamar build que é recursivo
+    root.borrow_mut().build(
         Vector2D::new(0, 0),
         display.get_size(),
         &mut id_machine,
@@ -85,7 +176,15 @@ fn main() {
     let events = renderer.create_events_queue();
     let messages = renderer.create_message_queue();
 
-    renderer.event_loop(events, messages, &mut display, &mut collection);
+    renderer.event_loop(
+        events,
+        messages,
+        Rc::downgrade(&root) as Weak<RefCell<dyn Widget>>,
+        &mut display,
+        Vector2D::new(WIDTH, HEIGHT),
+        &mut id_machine,
+        &mut collection,
+    );
     // Limit to max ~60 fps update rate
     /*while window.is_open() && !window.is_key_down(Key::Escape) {
     if window.get_mouse_down(minifb::MouseButton::Left) {

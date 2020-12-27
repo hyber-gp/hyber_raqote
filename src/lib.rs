@@ -53,10 +53,6 @@ pub enum EventClient {
     },
 }
 
-pub enum MessageXPTO {
-    Abc,
-    Dfg,
-}
 
 #[derive(Default)]
 pub struct MouseState {
@@ -381,7 +377,6 @@ impl Raqote {
     }
 }
 impl Renderer<DisplayMinifb, EventClient> for Raqote {
-    type Message = MessageXPTO;
     fn map_events(event_client: EventClient) -> event::Event {
         match event_client {
             EventClient::LeftClickPress => {
@@ -553,7 +548,7 @@ impl Renderer<DisplayMinifb, EventClient> for Raqote {
             //-----Get Key Press--
             display
                 .display
-                .get_keys_pressed(minifb::KeyRepeat::No)
+                .get_keys_pressed(minifb::KeyRepeat::Yes)
                 .map(|keys| {
                     for t in keys {
                         match t {
