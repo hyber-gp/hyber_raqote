@@ -2913,7 +2913,6 @@ impl Renderer<DisplayMinifb, EventClient> for Raqote {
         let size = display.get_size();
         if size.x as i32 != self.dt.width() || size.y as i32 != self.dt.height() {
             self.dt = DrawTarget::new(size.x as i32, size.y as i32);
-            println!("YES!");
         }
         for (_key, instructions) in collection.pairs.iter() {
             for instruction in instructions {
