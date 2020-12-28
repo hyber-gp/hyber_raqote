@@ -1,15 +1,11 @@
 use hyber::display::Display;
 use hyber::event::Event;
 use hyber::event::Mouse::CursorMoved;
-use hyber::renderer::DrawImageOptions;
-use hyber::renderer::Message;
-use hyber::renderer::RenderInstruction;
-use hyber::renderer::RenderInstructionCollection;
-use hyber::renderer::Renderer;
-use hyber::util::Color;
-use hyber::util::IDMachine;
-use hyber::util::Vector2D;
-use hyber::widget::*;
+use hyber::renderer::{Message, RenderInstructionCollection, Renderer};
+use hyber::util::{Color, IDMachine, Vector2D};
+use hyber::widget::label::LabelWidget;
+use hyber::widget::root::RootWidget;
+use hyber::widget::{Axis, Widget};
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -43,7 +39,7 @@ impl Message for MessageXPTO {
             MessageXPTO::Increment {
                 label_ptr,
                 num_ptr,
-                event,
+                event: _,
             } => {
                 if let Some(label) = label_ptr.upgrade() {
                     if let Some(num) = num_ptr.upgrade() {
@@ -57,7 +53,7 @@ impl Message for MessageXPTO {
             MessageXPTO::Decrement {
                 label_ptr,
                 num_ptr,
-                event,
+                event: _,
             } => {
                 if let Some(label) = label_ptr.upgrade() {
                     if let Some(num) = num_ptr.upgrade() {
