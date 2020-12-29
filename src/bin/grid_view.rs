@@ -114,17 +114,17 @@ fn main() {
 
     let grid = Rc::new(RefCell::new(GridViewWidget::new(
         Vector2D::new(WIDTH, HEIGHT),
-        Axis::Horizontal,
+        Axis::Vertical,
         3,
     )));
 
     let mut label_vector = Vec::new();
 
-    for _ in 0..4 {
+    for i in 0..4 {
         label_vector.push(Rc::new(RefCell::new(LabelWidget::new(
-            String::from("."),
+            String::from(format!("label {}", i)),
             Vector2D::new(2000., 2000.),
-            80,
+            20,
             Color::from_hex(0xffffed00),
             Color::from_hex(0xff750787),
         ))))
@@ -158,7 +158,7 @@ fn main() {
             event: None,
         }),
         Box::new(MessageXPTO::Decrement {
-            label_ptr: Rc::downgrade(&label_2),
+            label_ptr: Rc::downgrade(&label_1),
             num_ptr: Rc::downgrade(&counter),
             event: None,
         }),
