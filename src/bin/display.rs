@@ -3,16 +3,17 @@ use hyber::event::Event;
 use hyber::event::Mouse::CursorMoved;
 use hyber::renderer::{Message, RenderInstructionCollection, Renderer};
 use hyber::util::{Color, IDMachine, Vector2D};
+use hyber::widget::grid_view::GridViewWidget;
 use hyber::widget::label::LabelWidget;
 use hyber::widget::root::RootWidget;
-use hyber::widget::{Axis, Widget};
+use hyber::widget::{Axis, Layout, Widget};
 
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::rc::Weak;
 
-const WIDTH: usize = 640;
-const HEIGHT: usize = 360;
+const WIDTH: f64 = 640.;
+const HEIGHT: f64 = 360.;
 
 #[derive(Clone)]
 pub enum MessageXPTO {
@@ -27,7 +28,7 @@ pub enum MessageXPTO {
         event: Option<Event>,
     },
     Resize {
-        label_ptr: Weak<RefCell<LabelWidget>>,
+        grid_ptr: Weak<RefCell<GridViewWidget>>,
         event: Option<Event>,
     },
 }
@@ -64,10 +65,10 @@ impl Message for MessageXPTO {
                     }
                 }
             }
-            MessageXPTO::Resize { label_ptr, event } => {
-                if let Some(label) = label_ptr.upgrade() {
+            MessageXPTO::Resize { grid_ptr, event } => {
+                if let Some(grid) = grid_ptr.upgrade() {
                     if let Some(Event::Mouse(CursorMoved { x, y })) = event {
-                        label.borrow_mut().set_size(Vector2D::new(*x, *y))
+                        grid.borrow_mut().set_original_size(Vector2D::new(*x as f64, *y as f64))
                     }
                 }
             }
@@ -90,10 +91,7 @@ impl Message for MessageXPTO {
             } => {
                 *event = Some(new_event);
             }
-            MessageXPTO::Resize {
-                label_ptr: _,
-                event,
-            } => {
+            MessageXPTO::Resize { grid_ptr: _, event } => {
                 *event = Some(new_event);
             }
         }
@@ -103,8 +101,8 @@ impl Message for MessageXPTO {
 fn main() {
     let mut display = hyber_raqote::DisplayMinifb::new(
         "Test - ESC to exit",
-        WIDTH,
-        HEIGHT,
+        WIDTH as usize,
+        HEIGHT as usize,
         hyber::display::DisplayDescritor {
             resizable: true,
             ..hyber::display::DisplayDescritor::default()
@@ -114,22 +112,38 @@ fn main() {
 
     let mut collection = RenderInstructionCollection::new();
 
-    let label = Rc::new(RefCell::new(LabelWidget::new(
-        String::from("Teste!"),
-        Vector2D::new(200, 150),
-        80,
-        Color::from_hex(0xffffed00),
-        Color::from_hex(0xff750787),
-        Axis::Vertical,
+    let grid = Rc::new(RefCell::new(GridViewWidget::new(
+        Vector2D::new(WIDTH, HEIGHT),
+        Axis::Horizontal,
+        3,
+    )));
+
+    let mut label_vector = Vec::new();
+
+    for _ in 0..4 {
+        label_vector.push(Rc::new(RefCell::new(LabelWidget::new(
+            String::from("."),
+            Vector2D::new(2000., 2000.),
+            80,
+            Color::from_hex(0xffffed00),
+            Color::from_hex(0xff750787),
+        ))))
+    }
+
+    let label_1 = Rc::new(RefCell::new(LabelWidget::new(
+        String::from("Teste1!"),
+        Vector2D::new(2000., 2000.),
+        33,
+        Color::from_hex(0xff008026),
+        Color::from_hex(0xff004dff),
     )));
 
     let label_2 = Rc::new(RefCell::new(LabelWidget::new(
         String::from("Teste2!"),
-        Vector2D::new(100, 100),
+        Vector2D::new(2000., 2000.),
         33,
-        Color::from_hex(0xff008026),
+        Color::from_hex(0xff509996),
         Color::from_hex(0xff004dff),
-        Axis::Vertical,
     )));
 
     let counter = Rc::new(RefCell::new(0));
@@ -137,37 +151,34 @@ fn main() {
     let root = Rc::new(RefCell::new(RootWidget::new(
         display.get_size(),
         Color::new(0xff, 0xff, 0xff, 0xff),
-        Axis::Vertical,
+        Layout::Box(Axis::Horizontal),
         Box::new(MessageXPTO::Increment {
-            label_ptr: Rc::downgrade(&label),
+            label_ptr: Rc::downgrade(&label_1),
             num_ptr: Rc::downgrade(&counter),
             event: None,
         }),
         Box::new(MessageXPTO::Decrement {
-            label_ptr: Rc::downgrade(&label),
+            label_ptr: Rc::downgrade(&label_2),
             num_ptr: Rc::downgrade(&counter),
             event: None,
         }),
         Box::new(MessageXPTO::Resize {
-            label_ptr: Rc::downgrade(&label),
+            grid_ptr: Rc::downgrade(&grid),
             event: None,
         }),
     )));
 
     // definir relaçoes de parentesco
-    root.borrow_mut()
-        .add_as_child(Rc::downgrade(&label) as Weak<RefCell<dyn Widget>>);
-    root.borrow_mut()
+    grid.borrow_mut()
+        .add_as_child(Rc::downgrade(&label_1) as Weak<RefCell<dyn Widget>>);
+    grid.borrow_mut()
         .add_as_child(Rc::downgrade(&label_2) as Weak<RefCell<dyn Widget>>);
-
-    // chamar build que é recursivo
-    root.borrow_mut().build(
-        Vector2D::new(0, 0),
-        display.get_size(),
-        &mut id_machine,
-        &mut collection,
-    );
-
+    for child in label_vector.iter() {
+        grid.borrow_mut()
+            .add_as_child(Rc::downgrade(&child) as Weak<RefCell<dyn Widget>>);
+    }
+    root.borrow_mut()
+        .add_as_child(Rc::downgrade(&grid) as Weak<RefCell<dyn Widget>>);
     let mut renderer = hyber_raqote::Raqote::new(WIDTH as i32, HEIGHT as i32);
     let events = renderer.create_events_queue();
     let messages = renderer.create_message_queue();

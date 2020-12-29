@@ -53,7 +53,6 @@ pub enum EventClient {
     },
 }
 
-
 #[derive(Default)]
 pub struct MouseState {
     pub mouse_pos: (f32, f32),
@@ -143,7 +142,8 @@ impl Display for DisplayMinifb {
         self.display.set_background_color(red, green, blue);
     }
     fn get_size(&self) -> Vector2D {
-        Vector2D::from_tuple(self.display.get_size())
+        let (x, y) = self.display.get_size();
+        Vector2D::from_tuple((x as f64, y as f64))
     }
 
     fn is_active(&mut self) -> bool {
@@ -2922,7 +2922,7 @@ impl Renderer<DisplayMinifb, EventClient> for Raqote {
 
         display
             .display
-            .update_with_buffer(self.dt.get_data(), size.x, size.y)
+            .update_with_buffer(self.dt.get_data(), size.x as usize, size.y as usize)
             .unwrap();
     }
 }
