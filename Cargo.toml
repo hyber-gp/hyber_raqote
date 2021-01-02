@@ -22,9 +22,9 @@ minifb = "0.19.1"
 
 # hyber - The library to implement on raqote
 # hyber =  { path = "C:\\Users\\Claubit\\Documents\\GitHub\\hyber"}
-hyber =  { path = "C:\\Users\\cfpgo\\Documents\\GitHub\\hyber"}
+# hyber =  { path = "C:\\Users\\cfpgo\\Documents\\GitHub\\hyber"}
 # hyber =  { path = "/home/samuel/Documents/GitHub/hyber" }
-# hyber =  { path = "C:\\Users\\diogo\\Documents\\Faculdade\\GP\\projects\\hyber" }
+hyber =  { path = "C:\\Users\\diogo\\Documents\\Faculdade\\GP\\projects\\hyber" }
 # hyber =  { path = "D:\\UC\\Rust\\hyber" }
 
 # raqote - Used for the 2d rendering context
