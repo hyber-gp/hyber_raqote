@@ -36,7 +36,12 @@ pub enum MessageXPTO {
       //  tab_ptr: Weak<RefCell<LabelWidget>>,
         event: Option<Event>,
     },
-    TabMove {
+    TabMoveLeft {
+        tab_grid_ptr: Weak<RefCell<GridViewWidget>>,
+        tab_ptr: Weak<RefCell<TabWidget>>,
+        event: Option<Event>,
+    },
+    TabMoveRight {
         tab_grid_ptr: Weak<RefCell<GridViewWidget>>,
         tab_ptr: Weak<RefCell<TabWidget>>,
         event: Option<Event>,
@@ -88,14 +93,49 @@ impl Message for MessageXPTO {
             } => {
               println!("Tab was pressed!");
             }
-            MessageXPTO::TabMove {
+            MessageXPTO::TabMoveLeft {
                 tab_grid_ptr,
                 tab_ptr,
                 event: _,
             } => {
+                println!("Tab was moved to the left!");
                 if let Some(tab) = tab_ptr.upgrade(){
-                    println!("Tab was pressed!{:?}",tab.borrow_mut().id());
+                    if let Some(tab_grid) = tab_grid_ptr.upgrade(){
+                        let movedTabID = tab.borrow_mut().id();
+                        let mut index = 0;
+                        let mut index_to_be_moved = 999 ;
+                        for value in tab_grid.borrow_mut().get_children().iter_mut() {
+                            if let Some(child) = value.upgrade() {
+                                let mut child= child.borrow_mut();
+                                //Check if it is a diferent tab than the one moved
+                                if child.id() != movedTabID{
+                                    //Check position of other tabs to the left
+                                    println!("X: {}",tab.borrow_mut().get_moved_cursor_pos().x);
+                                    if  tab.borrow_mut().get_moved_cursor_pos().x < (child.position().x +child.size().x/2. ) {
+                                        if index_to_be_moved == 999 {
+                                            index_to_be_moved = index;
+                                        }
+                                    }
+                                }//Once we get to the tab moved we should stop the search
+                                else{
+                                    break;
+                                }
+                            }
+                            index = index + 1 ;
+                        }
+                        if index_to_be_moved != 999{
+                            tab_grid.borrow_mut().get_children().swap(index_to_be_moved ,index );
+                            tab_grid.borrow_mut().set_dirty(true);
+                        }
+                    }
                 }
+            }
+            MessageXPTO::TabMoveRight {
+                tab_grid_ptr,
+                tab_ptr,
+                event: _,
+            } => {
+                println!("Tab was moved to the right!");
             }
         }
     }
@@ -125,7 +165,14 @@ impl Message for MessageXPTO {
             } => {
                 *event = Some(new_event);
             }
-            MessageXPTO::TabMove {
+            MessageXPTO::TabMoveLeft {
+                tab_grid_ptr: _,
+                tab_ptr: _,
+                event,
+            } => {
+                *event = Some(new_event);
+            }
+            MessageXPTO::TabMoveRight {
                 tab_grid_ptr: _,
                 tab_ptr: _,
                 event,
@@ -176,14 +223,20 @@ fn main() {
             event: None,
         })),
         None,
+        None,
     )));
     
-    tab1.borrow_mut().setNewMessageOnLongPress(Some(Box::new(MessageXPTO::TabMove{
+    tab1.borrow_mut().setNewMessageMoveLeft(Some(Box::new(MessageXPTO::TabMoveLeft{
         tab_grid_ptr: Rc::downgrade(&tab_grid),
         tab_ptr: Rc::downgrade(&tab1),
         event: None,
     })));
-  
+
+    tab1.borrow_mut().setNewMessageMoveRight(Some(Box::new(MessageXPTO::TabMoveRight{
+        tab_grid_ptr: Rc::downgrade(&tab_grid),
+        tab_ptr: Rc::downgrade(&tab1),
+        event: None,
+    })));
 
     let label_1 = Rc::new(RefCell::new(LabelWidget::new(
         String::from("Tab 1"),
@@ -201,14 +254,44 @@ fn main() {
             event: None,
         })),
         None,
+        None,
     )));
     
-    tab2.borrow_mut().setNewMessageOnLongPress(Some(Box::new(MessageXPTO::TabMove{
+    tab2.borrow_mut().setNewMessageMoveLeft(Some(Box::new(MessageXPTO::TabMoveLeft{
         tab_grid_ptr: Rc::downgrade(&tab_grid),
         tab_ptr: Rc::downgrade(&tab2),
         event: None,
     })));
 
+    tab2.borrow_mut().setNewMessageMoveRight(Some(Box::new(MessageXPTO::TabMoveRight{
+        tab_grid_ptr: Rc::downgrade(&tab_grid),
+        tab_ptr: Rc::downgrade(&tab2),
+        event: None,
+    })));
+
+
+    let tab3 = Rc::new(RefCell::new(TabWidget::new(
+        Vector2D::new(320., 200.),
+        Color::from_hex(0xffd15390),
+        Some(Box::new(MessageXPTO::TabPress {
+            //tab_grid_ptr: Rc::downgrade(&tab1),
+            event: None,
+        })),
+        None,
+        None,
+    )));
+    
+    tab3.borrow_mut().setNewMessageMoveLeft(Some(Box::new(MessageXPTO::TabMoveLeft{
+        tab_grid_ptr: Rc::downgrade(&tab_grid),
+        tab_ptr: Rc::downgrade(&tab3),
+        event: None,
+    })));
+
+    tab3.borrow_mut().setNewMessageMoveRight(Some(Box::new(MessageXPTO::TabMoveRight{
+        tab_grid_ptr: Rc::downgrade(&tab_grid),
+        tab_ptr: Rc::downgrade(&tab3),
+        event: None,
+    })));
 
     let label_2 = Rc::new(RefCell::new(LabelWidget::new(
         String::from("Tab 2"),
@@ -249,6 +332,8 @@ fn main() {
     .add_as_child(Rc::downgrade(&tab1) as Weak<RefCell<dyn Widget>>);
     tab_grid.borrow_mut()
     .add_as_child(Rc::downgrade(&tab2) as Weak<RefCell<dyn Widget>>);
+    tab_grid.borrow_mut()
+    .add_as_child(Rc::downgrade(&tab3) as Weak<RefCell<dyn Widget>>);
     root.borrow_mut()
         .add_as_child(Rc::downgrade(&tab_grid) as Weak<RefCell<dyn Widget>>);
 
