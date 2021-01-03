@@ -29,11 +29,7 @@ pub enum MessageXPTO {
         label_ptr: Weak<RefCell<LabelWidget>>,
         num_ptr: Weak<RefCell<i64>>,
         event: Option<Event>,
-    },/*
-    CheckBoxTrigger{
-        btn_ptr: Weak<RefCell<ButtonViewWidget>>,
-        event: Option<Event>,
-    }*/
+    },
     CheckBoxTrigger{
         btn_ptr: Weak<RefCell<ButtonViewWidget>>,
         checkbox_ptr: Weak<RefCell<CheckBoxWidget>>,
@@ -72,25 +68,8 @@ impl Message for MessageXPTO {
                             .set_text(String::from(format!("{}", *num.borrow())));
                     }
                 }
-            }/*
-            MessageXPTO::CheckBoxTrigger { btn_ptr, event} => {
-                if let Some(button) = btn_ptr.upgrade(){
-                    if let Some(event) = event{
-                        match event {
-                            Event::Widget(event::Widget::CheckBox(event::CheckBox::NotSelected)) => {
-                                button.borrow_mut().set_is_clickable(false);
-                            },
-                            event::Event::Widget(event::Widget::CheckBox(event::CheckBox::Selected)) => {
-                                button.borrow_mut().set_is_clickable(true);
-                            },
-                            _ =>{
-                                
-                            }
-                        }
-                    }
-                }
-            }*/
-            MessageXPTO::CheckBoxTrigger{btn_ptr, checkbox_ptr, event} => {
+            }
+            MessageXPTO::CheckBoxTrigger{btn_ptr, checkbox_ptr, event: _} => {
                 if let Some(button) = btn_ptr.upgrade(){
                     if let Some(checkbox) = checkbox_ptr.upgrade(){
                         button.borrow_mut().set_is_clickable(checkbox.borrow_mut().get_is_checked())
@@ -116,12 +95,6 @@ impl Message for MessageXPTO {
             } => {
                 *event = Some(new_event);
             }
-            /*MessageXPTO::CheckBoxTrigger{
-                btn_ptr:_,
-                event,
-            } => {
-                *event = Some(new_event);
-            }*/
             MessageXPTO::CheckBoxTrigger{
                 btn_ptr:_,
                 checkbox_ptr:_,
@@ -175,18 +148,6 @@ fn main() {
         
     )));
 
-    /*let checkbox = Rc::new(RefCell::new(CheckBoxWidget::new(
-        Vector2D::new(20., 20.),
-        Color::from_hex(0xFFFFFFFF),
-        Color::from_hex(0xFF26B6EC),
-        Some(Box::new(MessageXPTO::CheckBoxTrigger{
-            btn_ptr: Rc::downgrade(&button),
-            event: None,
-        })),
-        false,
-        2.,
-        0.25,
-    )));*/
     let checkbox = Rc::new(RefCell::new(CheckBoxWidget::new(
         Vector2D::new(20., 20.),
         Color::from_hex(0xFFFFFFFF),
