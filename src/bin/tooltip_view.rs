@@ -1,6 +1,5 @@
 use hyber::display::Display;
 use hyber::event::Event;
-use hyber::event::Mouse::CursorMoved;
 use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
 use hyber::util::{Color, IDMachine, Vector2D};
 use hyber::widget::grid_view::GridViewWidget;
@@ -66,14 +65,7 @@ impl Message for MessageXPTO {
                     }
                 }
             }
-            MessageXPTO::Resize { grid_ptr, event } => {
-                if let Some(grid) = grid_ptr.upgrade() {
-                    if let Some(Event::Mouse(CursorMoved { x, y })) = event {
-                        // grid.borrow_mut()
-                        //     .set_original_size(Vector2D::new(*x as f64, *y as f64))
-                    }
-                }
-            }
+            _ => (),
         }
     }
 

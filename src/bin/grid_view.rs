@@ -111,7 +111,7 @@ fn main() {
     );
     let mut id_machine = IDMachine::new();
 
-    let mut collection = RenderInstructionCollection::new();
+    let collection = Rc::new(RefCell::new(RenderInstructionCollection::new()));
 
     let absolute_collection = Rc::new(RefCell::new(AbsoluteWidgetCollection::new()));
 
@@ -193,7 +193,7 @@ fn main() {
         &mut display,
         Vector2D::new(WIDTH, HEIGHT),
         &mut id_machine,
-        &mut collection,
+        Rc::downgrade(&collection),
         Rc::downgrade(&absolute_collection),
     );
     // Limit to max ~60 fps update rate

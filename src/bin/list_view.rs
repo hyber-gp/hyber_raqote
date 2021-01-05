@@ -111,7 +111,8 @@ fn main() {
     );
     let mut id_machine = IDMachine::new();
 
-    let mut collection = RenderInstructionCollection::new();
+    let collection = Rc::new(RefCell::new(RenderInstructionCollection::new()));
+
     let absolute_collection = Rc::new(RefCell::new(AbsoluteWidgetCollection::new()));
 
     let list = Rc::new(RefCell::new(ListViewWidget::new(
@@ -124,8 +125,8 @@ fn main() {
     for i in 0..4 {
         label_vector.push(Rc::new(RefCell::new(LabelWidget::new(
             String::from(format!("label {}", i)),
-            Vector2D::new(2000., 50.),
-            20,
+            Vector2D::new(2000., 200.),
+            200,
             Color::from_hex(0xffffed00),
             Color::from_hex(0xff750787),
         ))))
@@ -191,7 +192,7 @@ fn main() {
         &mut display,
         Vector2D::new(WIDTH, HEIGHT),
         &mut id_machine,
-        &mut collection,
+        Rc::downgrade(&collection),
         Rc::downgrade(&absolute_collection),
     );
     // Limit to max ~60 fps update rate
