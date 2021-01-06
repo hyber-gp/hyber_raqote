@@ -1,7 +1,7 @@
 use hyber::display::Display;
 use hyber::event::Event;
 use hyber::event::Mouse::CursorMoved;
-use hyber::renderer::{Message, RenderInstructionCollection, Renderer};
+use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
 use hyber::util::{Color, IDMachine, Vector2D};
 use hyber::widget::grid_view::GridViewWidget;
 use hyber::widget::label::LabelWidget;
@@ -68,7 +68,8 @@ impl Message for MessageXPTO {
             MessageXPTO::Resize { grid_ptr, event } => {
                 if let Some(grid) = grid_ptr.upgrade() {
                     if let Some(Event::Mouse(CursorMoved { x, y })) = event {
-                        grid.borrow_mut().set_original_size(Vector2D::new(*x as f64, *y as f64))
+                        grid.borrow_mut()
+                            .set_original_size(Vector2D::new(*x as f64, *y as f64))
                     }
                 }
             }
@@ -110,7 +111,9 @@ fn main() {
     );
     let mut id_machine = IDMachine::new();
 
-    let mut collection = RenderInstructionCollection::new();
+    let collection = Rc::new(RefCell::new(RenderInstructionCollection::new()));
+
+    let absolute_collection = Rc::new(RefCell::new(AbsoluteWidgetCollection::new()));
 
     let grid = Rc::new(RefCell::new(GridViewWidget::new(
         Vector2D::new(WIDTH, HEIGHT),
@@ -190,7 +193,8 @@ fn main() {
         &mut display,
         Vector2D::new(WIDTH, HEIGHT),
         &mut id_machine,
-        &mut collection,
+        Rc::downgrade(&collection),
+        Rc::downgrade(&absolute_collection),
     );
     // Limit to max ~60 fps update rate
     /*while window.is_open() && !window.is_key_down(Key::Escape) {
