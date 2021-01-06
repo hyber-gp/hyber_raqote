@@ -21,12 +21,12 @@ required-features = []      # Features required to build this target (N/A for li
 minifb = "0.19.1"
 
 # hyber - The library to implement on raqote
-# hyber =  { path = "C:\\Users\\Claubit\\Documents\\GitHub\\hyber"}
-#hyber =  { path = "C:\\Users\\cfpgo\\Documents\\GitHub\\hyber"}
+hyber =  { path = "C:\\Users\\Claubit\\Documents\\GitHub\\hyber"}
+# hyber =  { path = "C:\\Users\\cfpgo\\Documents\\GitHub\\hyber"}
 # hyber =  { path = "/home/samuel/Documents/GitHub/hyber" }
 # hyber =  { path = "C:\\Users\\diogo\\Documents\\Faculdade\\GP\\projects\\hyber" }
 # hyber =  { path = "D:\\UC\\Rust\\hyber" }
-hyber = {path = "C:\\Users\\migue\\Downloads\\Universidade\\GestaoProjetos\\hyber"}
+# hyber = {path = "C:\\Users\\migue\\Downloads\\Universidade\\GestaoProjetos\\hyber"}
 
 # raqote - Used for the 2d rendering context
 raqote = "^0.8.0"
