@@ -125,7 +125,7 @@ fn main() {
     for i in 0..4 {
         label_vector.push(Rc::new(RefCell::new(LabelWidget::new(
             String::from(format!("label {}", i)),
-            Vector2D::new(2000., 200.),
+            Vector2D::new(2000., 5.),
             200,
             Color::from_hex(0xffffed00),
             Color::from_hex(0xff750787),
@@ -162,10 +162,6 @@ fn main() {
         Box::new(MessageXPTO::Decrement {
             label_ptr: Rc::downgrade(&label_2),
             num_ptr: Rc::downgrade(&counter),
-            event: None,
-        }),
-        Box::new(MessageXPTO::Resize {
-            list_ptr: Rc::downgrade(&list),
             event: None,
         }),
     )));

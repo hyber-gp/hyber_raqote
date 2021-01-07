@@ -123,7 +123,7 @@ fn main() {
 
     let mut label_vector = Vec::new();
 
-    for i in 0..4 {
+    for i in 0..8 {
         label_vector.push(Rc::new(RefCell::new(LabelWidget::new(
             String::from(format!("label {}", i)),
             Vector2D::new(2000., 2000.),
@@ -163,10 +163,6 @@ fn main() {
         Box::new(MessageXPTO::Decrement {
             label_ptr: Rc::downgrade(&label_1),
             num_ptr: Rc::downgrade(&counter),
-            event: None,
-        }),
-        Box::new(MessageXPTO::Resize {
-            grid_ptr: Rc::downgrade(&grid),
             event: None,
         }),
     )));

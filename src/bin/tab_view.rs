@@ -1,7 +1,6 @@
 use hyber::display::Display;
 use hyber::event::Event;
-use hyber::event::Mouse::CursorMoved;
-use hyber::renderer::{Message, RenderInstructionCollection, Renderer};
+use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
 use hyber::util::{Color, IDMachine, Vector2D};
 use hyber::widget::grid_view::GridViewWidget;
 use hyber::widget::label::LabelWidget;
@@ -33,7 +32,7 @@ pub enum MessageXPTO {
         event: Option<Event>,
     },
     TabPress {
-      //  tab_ptr: Weak<RefCell<LabelWidget>>,
+        //  tab_ptr: Weak<RefCell<LabelWidget>>,
         event: Option<Event>,
     },
     TabMove {
@@ -83,10 +82,10 @@ impl Message for MessageXPTO {
                 }*/
             }
             MessageXPTO::TabPress {
-            //    tab_ptr,
+                //    tab_ptr,
                 event: _,
             } => {
-              println!("Tab was pressed!");
+                println!("Tab was pressed!");
             }
             MessageXPTO::TabMove {
                 tab_grid_ptr,
@@ -94,34 +93,38 @@ impl Message for MessageXPTO {
                 event: _,
             } => {
                 println!("Tab was Moved");
-                if let Some(tab) = tab_ptr.upgrade(){
-                    if let Some(tab_grid) = tab_grid_ptr.upgrade(){
+                if let Some(tab) = tab_ptr.upgrade() {
+                    if let Some(tab_grid) = tab_grid_ptr.upgrade() {
                         let movedTabID = tab.borrow_mut().id();
                         let mut index = 0;
                         let mut index_to_be_moved1 = 0;
                         let mut index_to_be_moved2 = 0;
-                        let mut moved = false ;
+                        let mut moved = false;
                         for value in tab_grid.borrow_mut().get_children().iter_mut() {
                             if let Some(child) = value.upgrade() {
-                                let mut child= child.borrow_mut();
+                                let mut child = child.borrow_mut();
                                 //Check if it is a diferent tab than the one moved
-                                if child.id() != movedTabID{
+                                if child.id() != movedTabID {
                                     //Check if mouse moved inside other tabs
-                                    if child.is_cursor_inside(tab.borrow_mut().get_moved_cursor_pos()){
-                                        if !moved{
+                                    if child
+                                        .is_cursor_inside(tab.borrow_mut().get_moved_cursor_pos())
+                                    {
+                                        if !moved {
                                             index_to_be_moved1 = index;
                                             moved = true;
                                         }
                                     }
-                                }
-                                else{
+                                } else {
                                     index_to_be_moved2 = index;
                                 }
                             }
-                            index = index + 1 ;
+                            index = index + 1;
                         }
                         if moved {
-                            tab_grid.borrow_mut().get_children().swap(index_to_be_moved1 ,index_to_be_moved2);
+                            tab_grid
+                                .borrow_mut()
+                                .get_children()
+                                .swap(index_to_be_moved1, index_to_be_moved2);
                             tab_grid.borrow_mut().set_dirty(true);
                         }
                     }
@@ -150,7 +153,7 @@ impl Message for MessageXPTO {
                 *event = Some(new_event);
             }
             MessageXPTO::TabPress {
-           //     tab_ptr: _,
+                //     tab_ptr: _,
                 event,
             } => {
                 *event = Some(new_event);
@@ -162,7 +165,6 @@ impl Message for MessageXPTO {
             } => {
                 *event = Some(new_event);
             }
-
         }
     }
 }
@@ -180,7 +182,9 @@ fn main() {
 
     let mut id_machine = IDMachine::new();
 
-    let mut collection = RenderInstructionCollection::new();
+    let collection = Rc::new(RefCell::new(RenderInstructionCollection::new()));
+
+    let absolute_collection = Rc::new(RefCell::new(AbsoluteWidgetCollection::new()));
 
     let grid = Rc::new(RefCell::new(GridViewWidget::new(
         Vector2D::new(WIDTH, HEIGHT),
@@ -190,13 +194,11 @@ fn main() {
 
     let counter = Rc::new(RefCell::new(0));
 
-
-    let tab_grid= Rc::new(RefCell::new(GridViewWidget::new(
+    let tab_grid = Rc::new(RefCell::new(GridViewWidget::new(
         Vector2D::new(500., 200.),
         Axis::Vertical,
         2,
     )));
-
 
     let tab1 = Rc::new(RefCell::new(TabWidget::new(
         Vector2D::new(320., 200.),
@@ -207,13 +209,13 @@ fn main() {
         })),
         None,
     )));
-    
-    tab1.borrow_mut().setNewMessageMove(Some(Box::new(MessageXPTO::TabMove{
-        tab_grid_ptr: Rc::downgrade(&tab_grid),
-        tab_ptr: Rc::downgrade(&tab1),
-        event: None,
-    })));
 
+    tab1.borrow_mut()
+        .set_new_message_move(Some(Box::new(MessageXPTO::TabMove {
+            tab_grid_ptr: Rc::downgrade(&tab_grid),
+            tab_ptr: Rc::downgrade(&tab1),
+            event: None,
+        })));
 
     let label_1 = Rc::new(RefCell::new(LabelWidget::new(
         String::from("Tab 1"),
@@ -232,13 +234,13 @@ fn main() {
         })),
         None,
     )));
-    
-    tab2.borrow_mut().setNewMessageMove(Some(Box::new(MessageXPTO::TabMove{
-        tab_grid_ptr: Rc::downgrade(&tab_grid),
-        tab_ptr: Rc::downgrade(&tab2),
-        event: None,
-    })));
 
+    tab2.borrow_mut()
+        .set_new_message_move(Some(Box::new(MessageXPTO::TabMove {
+            tab_grid_ptr: Rc::downgrade(&tab_grid),
+            tab_ptr: Rc::downgrade(&tab2),
+            event: None,
+        })));
     let label_2 = Rc::new(RefCell::new(LabelWidget::new(
         String::from("Tab 2"),
         Vector2D::new(10., 200.),
@@ -256,14 +258,13 @@ fn main() {
         })),
         None,
     )));
-    
-    tab3.borrow_mut().setNewMessageMove(Some(Box::new(MessageXPTO::TabMove{
-        tab_grid_ptr: Rc::downgrade(&tab_grid),
-        tab_ptr: Rc::downgrade(&tab3),
-        event: None,
-    })));
 
-
+    tab3.borrow_mut()
+        .set_new_message_move(Some(Box::new(MessageXPTO::TabMove {
+            tab_grid_ptr: Rc::downgrade(&tab_grid),
+            tab_ptr: Rc::downgrade(&tab3),
+            event: None,
+        })));
 
     let label_3 = Rc::new(RefCell::new(LabelWidget::new(
         String::from("Tab 3"),
@@ -272,8 +273,6 @@ fn main() {
         Color::from_hex(0x00008026),
         Color::from_hex(0xff004dff),
     )));
-
-
 
     let root = Rc::new(RefCell::new(RootWidget::new(
         display.get_size(),
@@ -289,29 +288,28 @@ fn main() {
             num_ptr: Rc::downgrade(&counter),
             event: None,
         }),
-        Box::new(MessageXPTO::Resize {
-            grid_ptr: Rc::downgrade(&grid),
-            event: None,
-        }),
     )));
-
 
     // definir relaçoes de parentesco
 
-    tab1.borrow_mut().add_as_child(Rc::downgrade(&label_1) as Weak<RefCell<dyn Widget>>);
-    tab2.borrow_mut().add_as_child(Rc::downgrade(&label_2) as Weak<RefCell<dyn Widget>>);
-    tab3.borrow_mut().add_as_child(Rc::downgrade(&label_3) as Weak<RefCell<dyn Widget>>);
-    tab_grid.borrow_mut()
-    .add_as_child(Rc::downgrade(&tab1) as Weak<RefCell<dyn Widget>>);
-    tab_grid.borrow_mut()
-    .add_as_child(Rc::downgrade(&tab2) as Weak<RefCell<dyn Widget>>);
-    tab_grid.borrow_mut()
-    .add_as_child(Rc::downgrade(&tab3) as Weak<RefCell<dyn Widget>>);
+    tab1.borrow_mut()
+        .add_as_child(Rc::downgrade(&label_1) as Weak<RefCell<dyn Widget>>);
+    tab2.borrow_mut()
+        .add_as_child(Rc::downgrade(&label_2) as Weak<RefCell<dyn Widget>>);
+    tab3.borrow_mut()
+        .add_as_child(Rc::downgrade(&label_3) as Weak<RefCell<dyn Widget>>);
+    tab_grid
+        .borrow_mut()
+        .add_as_child(Rc::downgrade(&tab1) as Weak<RefCell<dyn Widget>>);
+    tab_grid
+        .borrow_mut()
+        .add_as_child(Rc::downgrade(&tab2) as Weak<RefCell<dyn Widget>>);
+    tab_grid
+        .borrow_mut()
+        .add_as_child(Rc::downgrade(&tab3) as Weak<RefCell<dyn Widget>>);
     root.borrow_mut()
         .add_as_child(Rc::downgrade(&tab_grid) as Weak<RefCell<dyn Widget>>);
 
-
-    
     let mut renderer = hyber_raqote::Raqote::new(WIDTH as i32, HEIGHT as i32);
     let events = renderer.create_events_queue();
     let messages = renderer.create_message_queue();
@@ -323,8 +321,8 @@ fn main() {
         &mut display,
         Vector2D::new(WIDTH, HEIGHT),
         &mut id_machine,
-        &mut collection,
-    
+        Rc::downgrade(&collection),
+        Rc::downgrade(&absolute_collection),
     );
     // Limit to max ~60 fps update rate
     /*while window.is_open() && !window.is_key_down(Key::Escape) {

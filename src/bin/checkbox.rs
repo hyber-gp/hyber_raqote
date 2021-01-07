@@ -1,8 +1,6 @@
 use hyber::display::Display;
-use hyber::event;
 use hyber::event::Event;
-use hyber::event::Mouse::CursorMoved;
-use hyber::renderer::{Message, RenderInstructionCollection, Renderer};
+use hyber::renderer::{Message, RenderInstructionCollection, Renderer, AbsoluteWidgetCollection};
 use hyber::util::{Color, IDMachine, Vector2D};
 use hyber::widget::grid_view::GridViewWidget;
 use hyber::widget::label::LabelWidget;
@@ -119,7 +117,9 @@ fn main() {
     );
     let mut id_machine = IDMachine::new();
 
-    let mut collection = RenderInstructionCollection::new();
+    let collection = Rc::new(RefCell::new(RenderInstructionCollection::new()));
+
+    let absolute_collection = Rc::new(RefCell::new(AbsoluteWidgetCollection::new()));
 
     let counter = Rc::new(RefCell::new(0));
 
@@ -127,7 +127,7 @@ fn main() {
         String::from("Teste1!"),
         Vector2D::new(200f64, 200f64),
         33,
-        Color::from_hex(0xff008026),
+        Color::from_hex(0xffff8026),
         Color::from_hex(0xff004dff),
     )));
 
@@ -207,6 +207,7 @@ fn main() {
         &mut display,
         Vector2D::new(WIDTH, HEIGHT),
         &mut id_machine,
-        &mut collection,
+        Rc::downgrade(&collection),
+        Rc::downgrade(&absolute_collection),
     );
 }

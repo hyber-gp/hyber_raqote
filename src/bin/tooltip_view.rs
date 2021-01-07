@@ -164,10 +164,6 @@ fn main() {
             num_ptr: Rc::downgrade(&counter),
             event: None,
         }),
-        Box::new(MessageXPTO::Resize {
-            grid_ptr: Rc::downgrade(&grid),
-            event: None,
-        }),
     )));
 
     // definir relaçoes de parentesco

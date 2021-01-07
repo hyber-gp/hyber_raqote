@@ -1,13 +1,12 @@
 use hyber::display::Display;
 use hyber::event::Event;
 use hyber::event::Mouse::CursorMoved;
-use hyber::renderer::{Message, RenderInstructionCollection, Renderer};
+use hyber::renderer::{Message, RenderInstructionCollection, Renderer, AbsoluteWidgetCollection};
 use hyber::util::{Color, IDMachine, Vector2D};
 use hyber::widget::grid_view::GridViewWidget;
 use hyber::widget::label::LabelWidget;
 use hyber::widget::root::RootWidget;
 use hyber::widget::textbox::TextBoxWidget;
-use hyber::widget::button_view::ButtonViewWidget;
 use hyber::widget::slider::SliderWidget;
 use hyber::widget::{Axis, Layout, Widget};
 
@@ -132,7 +131,9 @@ fn main() {
     );
     let mut id_machine = IDMachine::new();
 
-    let mut collection = RenderInstructionCollection::new();
+    let collection = Rc::new(RefCell::new(RenderInstructionCollection::new()));
+
+    let absolute_collection = Rc::new(RefCell::new(AbsoluteWidgetCollection::new()));
 
     let counter = Rc::new(RefCell::new(0));
 
@@ -227,6 +228,7 @@ fn main() {
         &mut display,
         Vector2D::new(WIDTH, HEIGHT),
         &mut id_machine,
-        &mut collection,
+        Rc::downgrade(&collection),
+        Rc::downgrade(&absolute_collection),
     );
 }
