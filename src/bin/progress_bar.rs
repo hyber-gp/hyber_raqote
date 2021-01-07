@@ -18,10 +18,11 @@ const HEIGHT: f64 = 360.;
 
 #[derive(Clone)]
 pub enum MessageXPTO {
-    Increment {
+    Progress {
         label_ptr: Weak<RefCell<LabelWidget>>,
         progress_ptr: Weak<RefCell<ProgressBarWidget>>,
         num_ptr: Weak<RefCell<f64>>,
+        inc: f64,
         event: Option<Event>,
     },
 }
@@ -30,27 +31,28 @@ pub enum MessageXPTO {
 impl Message for MessageXPTO {
     fn update(&self) {
         match self {
-            MessageXPTO::Increment {
+            MessageXPTO::Progress {
                 label_ptr,
                 progress_ptr,
                 num_ptr,
+                inc,
                 event: _,
             } => {
                 if let Some(label) = label_ptr.upgrade() {
                     if let Some(progress) = progress_ptr.upgrade() {
                         if let Some(num) = num_ptr.upgrade() {
-                            *num.borrow_mut() += 1.0;
+                            *num.borrow_mut() += inc;
                             
                             if *num.borrow() > 100.0 {
                                 *num.borrow_mut() = 100.0;
                             }
                             
                             label
-                                .borrow_mut()
-                                .set_text(String::from(format!("Progress: {:.1}%", *num.borrow())));
+                            .borrow_mut()
+                            .set_text(String::from(format!("Progress: {:.1}%", *num.borrow())));
                             progress
-                                .borrow_mut()
-                                .set_progress(*num.borrow());
+                            .borrow_mut()
+                            .set_progress(*num.borrow());
                         }
                     }
                 }
@@ -60,10 +62,11 @@ impl Message for MessageXPTO {
 
     fn set_event(&mut self, new_event: Event) {
         match self {
-            MessageXPTO::Increment {
+            MessageXPTO::Progress {
                 label_ptr: _,
                 progress_ptr: _,
                 num_ptr: _,
+                inc: _,
                 event,
             } => {
                 *event = Some(new_event);
@@ -114,12 +117,6 @@ fn main() {
         display.get_size(),
         Color::new(0xff, 0xff, 0xff, 0xff),
         Layout::Box(Axis::Horizontal),
-        Box::new(MessageXPTO::Increment {
-            label_ptr: Rc::downgrade(&label_1),
-            progress_ptr: Rc::downgrade(&progressbar_1),
-            num_ptr: Rc::downgrade(&counter),
-            event: None,
-        }),
     )));
 
     // definir relaçoes de parentesco
@@ -131,8 +128,28 @@ fn main() {
         .add_as_child(Rc::downgrade(&grid) as Weak<RefCell<dyn Widget>>);
     let mut renderer = hyber_raqote::Raqote::new(WIDTH as i32, HEIGHT as i32);
     let events = renderer.create_events_queue();
-    let messages = renderer.create_message_queue();
+    let mut messages = renderer.create_message_queue();
 
+    messages.enqueue(
+        Box::new(MessageXPTO::Progress{
+            label_ptr: Rc::downgrade(&label_1),
+            progress_ptr: Rc::downgrade(&progressbar_1),
+            num_ptr: Rc::downgrade(&counter),
+            inc: 5.2,
+            event: None,
+        })
+    );
+
+    messages.enqueue(
+        Box::new(MessageXPTO::Progress{
+            label_ptr: Rc::downgrade(&label_1),
+            progress_ptr: Rc::downgrade(&progressbar_1),
+            num_ptr: Rc::downgrade(&counter),
+            inc: 15.6,
+            event: None,
+        })
+    );
+        
     renderer.event_loop(
         events,
         messages,
