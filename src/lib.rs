@@ -4,6 +4,7 @@ use hyber::{
     util::Color, util::Queue, util::Vector2D,
 };
 
+use std::time::{Instant};
 use minifb;
 use raqote::{
     DrawOptions, DrawTarget, LineCap, LineJoin, PathBuilder, SolidSource, Source, StrokeStyle,
@@ -3059,16 +3060,23 @@ impl Renderer<DisplayMinifb, EventClient> for Raqote {
         if size.x as i32 != self.dt.width() || size.y as i32 != self.dt.height() {
             self.dt = DrawTarget::new(size.x as i32, size.y as i32);
         }
+     //   let mut for_start_time = Instant::now();
         for (_key, instructions) in collection.pairs.iter() {
             for instruction in instructions {
+                let draw_start_time = Instant::now();
                 self.draw(instruction);
+                let draw_final_time = Instant::now();
+                //for_start_time = for_start_time + draw_final_time.duration_since(draw_start_time);
+                println!("Draw Time : {:?}   Instruction: {:?}",draw_final_time.duration_since(draw_start_time), instruction);
             }
         }
-
+       
+       // let for_final_time = Instant::now();
         display
             .display
             .update_with_buffer(self.dt.get_data(), size.x as usize, size.y as usize)
             .unwrap();
+        //println!("Display Time : {:?}",for_final_time.duration_since(for_start_time));
     }
 }
 

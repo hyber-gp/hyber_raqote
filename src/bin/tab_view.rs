@@ -282,7 +282,7 @@ fn main() {
     let events = renderer.create_events_queue();
     let messages = renderer.create_message_queue();
 
-    renderer.event_loop(
+    renderer.benchmarked_rendererloop(
         events,
         messages,
         Rc::downgrade(&root) as Weak<RefCell<dyn Widget>>,
