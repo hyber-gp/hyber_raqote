@@ -1,10 +1,12 @@
 use hyber::display::Display;
 use hyber::event::Event;
 use hyber::event::Mouse::CursorMoved;
-use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
+use hyber::renderer::{
+    AbsoluteWidgetCollection, DrawImageOptions, Message, RenderInstructionCollection, Renderer,
+};
 use hyber::util::{Color, IDMachine, Vector2D};
 use hyber::widget::grid_view::GridViewWidget;
-use hyber::widget::label::LabelWidget;
+use hyber::widget::icon::IconWidget;
 use hyber::widget::root::RootWidget;
 use hyber::widget::{Axis, Layout, Widget};
 
@@ -18,12 +20,12 @@ const HEIGHT: f64 = 360.;
 #[derive(Clone)]
 pub enum MessageXPTO {
     Increment {
-        label_ptr: Weak<RefCell<LabelWidget>>,
+        icon_ptr: Weak<RefCell<IconWidget>>,
         num_ptr: Weak<RefCell<i64>>,
         event: Option<Event>,
     },
     Decrement {
-        label_ptr: Weak<RefCell<LabelWidget>>,
+        icon_ptr: Weak<RefCell<IconWidget>>,
         num_ptr: Weak<RefCell<i64>>,
         event: Option<Event>,
     },
@@ -33,35 +35,28 @@ pub enum MessageXPTO {
     },
 }
 
-// t uconsegues :) we are rooting for you
 impl Message for MessageXPTO {
     fn update(&self) {
         match self {
             MessageXPTO::Increment {
-                label_ptr,
+                icon_ptr,
                 num_ptr,
                 event: _,
             } => {
-                if let Some(label) = label_ptr.upgrade() {
+                if let Some(_icon) = icon_ptr.upgrade() {
                     if let Some(num) = num_ptr.upgrade() {
                         *num.borrow_mut() += 1;
-                        label
-                            .borrow_mut()
-                            .set_text(String::from(format!("{}", *num.borrow())));
                     }
                 }
             }
             MessageXPTO::Decrement {
-                label_ptr,
+                icon_ptr,
                 num_ptr,
                 event: _,
             } => {
-                if let Some(label) = label_ptr.upgrade() {
+                if let Some(_icon) = icon_ptr.upgrade() {
                     if let Some(num) = num_ptr.upgrade() {
                         *num.borrow_mut() -= 1;
-                        label
-                            .borrow_mut()
-                            .set_text(String::from(format!("{}", *num.borrow())));
                     }
                 }
             }
@@ -79,14 +74,14 @@ impl Message for MessageXPTO {
     fn set_event(&mut self, new_event: Event) {
         match self {
             MessageXPTO::Increment {
-                label_ptr: _,
+                icon_ptr: _,
                 num_ptr: _,
                 event,
             } => {
                 *event = Some(new_event);
             }
             MessageXPTO::Decrement {
-                label_ptr: _,
+                icon_ptr: _,
                 num_ptr: _,
                 event,
             } => {
@@ -115,53 +110,35 @@ fn main() {
 
     let absolute_collection = Rc::new(RefCell::new(AbsoluteWidgetCollection::new()));
 
+    let counter = Rc::new(RefCell::new(0));
+
+    let icon = Rc::new(RefCell::new(IconWidget::new(
+        String::from("rust.png"),  // path
+        Vector2D::new(200., 200.), // size of the box layout
+        DrawImageOptions::Resize {
+            width: 200,
+            height: 200,
+        }, // DrawImageOptions
+        Color::from_hex(0xff004dff), // color
+    )));
+
     let grid = Rc::new(RefCell::new(GridViewWidget::new(
         Vector2D::new(WIDTH, HEIGHT),
         Axis::Vertical,
         3,
     )));
 
-    let mut label_vector = Vec::new();
-
-    for i in 0..8 {
-        label_vector.push(Rc::new(RefCell::new(LabelWidget::new(
-            String::from(format!("label {}", i)),
-            Vector2D::new(2000., 2000.),
-            20,
-            Color::from_hex(0xffffed00),
-            Color::from_hex(0xff750787),
-        ))))
-    }
-
-    let label_1 = Rc::new(RefCell::new(LabelWidget::new(
-        String::from("Teste1!"),
-        Vector2D::new(2000., 2000.),
-        33,
-        Color::from_hex(0xff008026),
-        Color::from_hex(0xff004dff),
-    )));
-
-    let label_2 = Rc::new(RefCell::new(LabelWidget::new(
-        String::from("Teste2!"),
-        Vector2D::new(2000., 2000.),
-        33,
-        Color::from_hex(0xff509996),
-        Color::from_hex(0xff004dff),
-    )));
-
-    let counter = Rc::new(RefCell::new(0));
-
     let root = Rc::new(RefCell::new(RootWidget::new(
         display.get_size(),
         Color::new(0xff, 0xff, 0xff, 0xff),
         Layout::Box(Axis::Horizontal),
         Box::new(MessageXPTO::Increment {
-            label_ptr: Rc::downgrade(&label_1),
+            icon_ptr: Rc::downgrade(&icon),
             num_ptr: Rc::downgrade(&counter),
             event: None,
         }),
         Box::new(MessageXPTO::Decrement {
-            label_ptr: Rc::downgrade(&label_1),
+            icon_ptr: Rc::downgrade(&icon),
             num_ptr: Rc::downgrade(&counter),
             event: None,
         }),
@@ -169,13 +146,7 @@ fn main() {
 
     // definir relaçoes de parentesco
     grid.borrow_mut()
-        .add_as_child(Rc::downgrade(&label_1) as Weak<RefCell<dyn Widget>>);
-    grid.borrow_mut()
-        .add_as_child(Rc::downgrade(&label_2) as Weak<RefCell<dyn Widget>>);
-    for child in label_vector.iter() {
-        grid.borrow_mut()
-            .add_as_child(Rc::downgrade(&child) as Weak<RefCell<dyn Widget>>);
-    }
+        .add_as_child(Rc::downgrade(&icon) as Weak<RefCell<dyn Widget>>);
     root.borrow_mut()
         .add_as_child(Rc::downgrade(&grid) as Weak<RefCell<dyn Widget>>);
     let mut renderer = hyber_raqote::Raqote::new(WIDTH as i32, HEIGHT as i32);
@@ -192,11 +163,4 @@ fn main() {
         Rc::downgrade(&collection),
         Rc::downgrade(&absolute_collection),
     );
-    // Limit to max ~60 fps update rate
-    /*while window.is_open() && !window.is_key_down(Key::Escape) {
-    if window.get_mouse_down(minifb::MouseButton::Left) {
-        let event = Rendererxpto::map_events(EventoCliente::left_click);
-        queue.enqueue(event);
-    }*/
-    // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
 }

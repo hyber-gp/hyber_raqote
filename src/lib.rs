@@ -169,11 +169,33 @@ impl Raqote {
         ));
     }
 
-    fn draw_point(&mut self, point: &Vector2D, color: &Color) {
+    fn draw_point(
+        &mut self,
+        point: &Vector2D,
+        color: &Color,
+        clip_point: &Vector2D,
+        clip_size: &Vector2D,
+    ) {
         // [Doubt] Isn't the point basically a tiny circle?
     }
 
-    fn draw_line(&mut self, point_a: &Vector2D, point_b: &Vector2D, color: &Color) {
+    fn draw_line(
+        &mut self,
+        point_a: &Vector2D,
+        point_b: &Vector2D,
+        color: &Color,
+        clip_point: &Vector2D,
+        clip_size: &Vector2D,
+    ) {
+        let mut pb_clip = PathBuilder::new();
+        pb_clip.rect(
+            clip_point.x as f32,
+            clip_point.y as f32,
+            clip_size.x as f32,
+            clip_size.y as f32,
+        );
+        pb_clip.close();
+        self.dt.push_clip(&pb_clip.finish());
         let mut pb = PathBuilder::new();
         pb.move_to(point_a.x as f32, point_a.y as f32);
         pb.line_to(point_b.x as f32, point_b.y as f32);
@@ -193,9 +215,28 @@ impl Raqote {
             },
             &DrawOptions::new(),
         );
+        self.dt.pop_clip();
     }
 
-    fn draw_arc(&mut self, point: &Vector2D, r: usize, s_ang: usize, e_ang: usize, color: &Color) {
+    fn draw_arc(
+        &mut self,
+        point: &Vector2D,
+        r: usize,
+        s_ang: usize,
+        e_ang: usize,
+        color: &Color,
+        clip_point: &Vector2D,
+        clip_size: &Vector2D,
+    ) {
+        let mut pb_clip = PathBuilder::new();
+        pb_clip.rect(
+            clip_point.x as f32,
+            clip_point.y as f32,
+            clip_size.x as f32,
+            clip_size.y as f32,
+        );
+        pb_clip.close();
+        self.dt.push_clip(&pb_clip.finish());
         let mut pb = PathBuilder::new();
         pb.move_to(point.x as f32, point.y as f32);
         pb.arc(
@@ -214,14 +255,29 @@ impl Raqote {
             )),
             &DrawOptions::new(),
         );
+        self.dt.pop_clip();
     }
 
-    fn draw_circle(&mut self, point: &Vector2D, r: usize, color: &Color) {
+    fn draw_circle(
+        &mut self,
+        point: &Vector2D,
+        r: usize,
+        color: &Color,
+        clip_point: &Vector2D,
+        clip_size: &Vector2D,
+    ) {
+        let mut pb_clip = PathBuilder::new();
+        pb_clip.rect(
+            clip_point.x as f32,
+            clip_point.y as f32,
+            clip_size.x as f32,
+            clip_size.y as f32,
+        );
+        pb_clip.close();
+        self.dt.push_clip(&pb_clip.finish());
         let mut pb = PathBuilder::new();
-
         pb.move_to(point.x as f32, point.y as f32);
         pb.arc(point.x as f32, point.y as f32, r as f32, 0., 7.);
-
         pb.close();
         self.dt.fill(
             &pb.finish(),
@@ -230,15 +286,30 @@ impl Raqote {
             )),
             &DrawOptions::new(),
         );
+        self.dt.pop_clip();
     }
 
-    fn draw_rectangle(&mut self, point: &Vector2D, size: &Vector2D, color: &Color) {
+    fn draw_rectangle(
+        &mut self,
+        point: &Vector2D,
+        size: &Vector2D,
+        color: &Color,
+        clip_point: &Vector2D,
+        clip_size: &Vector2D,
+    ) {
+        let mut pb_clip = PathBuilder::new();
+        pb_clip.rect(
+            clip_point.x as f32,
+            clip_point.y as f32,
+            clip_size.x as f32,
+            clip_size.y as f32,
+        );
+        pb_clip.close();
+        self.dt.push_clip(&pb_clip.finish());
         let mut pb = PathBuilder::new();
-
-        pb.move_to(point.x as f32, point.y as f32);
         pb.rect(point.x as f32, point.y as f32, size.x as f32, size.y as f32);
-
         pb.close();
+
         self.dt.fill(
             &pb.finish(),
             &Source::Solid(SolidSource::from_unpremultiplied_argb(
@@ -246,6 +317,7 @@ impl Raqote {
             )),
             &DrawOptions::new(),
         );
+        self.dt.pop_clip();
     }
 
     fn draw_triangle(
@@ -254,7 +326,18 @@ impl Raqote {
         point_b: &Vector2D,
         point_c: &Vector2D,
         color: &Color,
+        clip_point: &Vector2D,
+        clip_size: &Vector2D,
     ) {
+        let mut pb_clip = PathBuilder::new();
+        pb_clip.rect(
+            clip_point.x as f32,
+            clip_point.y as f32,
+            clip_size.x as f32,
+            clip_size.y as f32,
+        );
+        pb_clip.close();
+        self.dt.push_clip(&pb_clip.finish());
         let mut pb = PathBuilder::new();
 
         pb.move_to(point_a.x as f32, point_a.y as f32);
@@ -269,9 +352,26 @@ impl Raqote {
             )),
             &DrawOptions::new(),
         );
+        self.dt.pop_clip();
     }
 
-    fn draw_image(&mut self, point: &Vector2D, path: &str, options: &DrawImageOptions) {
+    fn draw_image(
+        &mut self,
+        point: &Vector2D,
+        path: &str,
+        options: &DrawImageOptions,
+        clip_point: &Vector2D,
+        clip_size: &Vector2D,
+    ) {
+        let mut pb_clip = PathBuilder::new();
+        pb_clip.rect(
+            clip_point.x as f32,
+            clip_point.y as f32,
+            clip_size.x as f32,
+            clip_size.y as f32,
+        );
+        pb_clip.close();
+        self.dt.push_clip(&pb_clip.finish());
         let rgba = open(path).unwrap().into_rgba8();
         let img: Vec<u32> = rgba
             .pixels()
@@ -315,9 +415,27 @@ impl Raqote {
                 &DrawOptions::new(),
             ),
         }
+        self.dt.pop_clip();
     }
 
-    fn draw_text(&mut self, point: &Vector2D, font_size: usize, string: &str, color: &Color) {
+    fn draw_text(
+        &mut self,
+        point: &Vector2D,
+        font_size: usize,
+        string: &str,
+        color: &Color,
+        clip_point: &Vector2D,
+        clip_size: &Vector2D,
+    ) {
+        let mut pb_clip = PathBuilder::new();
+        pb_clip.rect(
+            clip_point.x as f32,
+            clip_point.y as f32,
+            clip_size.x as f32,
+            clip_size.y as f32,
+        );
+        pb_clip.close();
+        self.dt.push_clip(&pb_clip.finish());
         let font = SystemSource::new()
             .select_best_match(&[FamilyName::SansSerif], &Properties::new())
             .unwrap()
@@ -334,45 +452,72 @@ impl Raqote {
             )),
             &DrawOptions::new(),
         );
+
+        self.dt.pop_clip();
     }
 
     pub fn draw(&mut self, instruction: &RenderInstruction) {
         match instruction {
             RenderInstruction::Clear { color } => self.clear(color),
-            RenderInstruction::DrawPoint { point, color } => self.draw_point(point, color),
+            RenderInstruction::DrawPoint {
+                point,
+                color,
+                clip_point,
+                clip_size,
+            } => self.draw_point(point, color, clip_point, clip_size),
             RenderInstruction::DrawLine {
                 point_a,
                 point_b,
                 color,
-            } => self.draw_line(point_a, point_b, color),
+                clip_point,
+                clip_size,
+            } => self.draw_line(point_a, point_b, color, clip_point, clip_size),
             RenderInstruction::DrawArc {
                 point,
                 r,
                 s_ang,
                 e_ang,
                 color,
-            } => self.draw_arc(point, *r, *s_ang, *e_ang, color),
-            RenderInstruction::DrawCircle { point, r, color } => self.draw_circle(point, *r, color),
-            RenderInstruction::DrawRect { point, size, color } => {
-                self.draw_rectangle(point, size, color)
-            }
+                clip_point,
+                clip_size,
+            } => self.draw_arc(point, *r, *s_ang, *e_ang, color, clip_point, clip_size),
+            RenderInstruction::DrawCircle {
+                point,
+                r,
+                color,
+                clip_point,
+                clip_size,
+            } => self.draw_circle(point, *r, color, clip_point, clip_size),
+            RenderInstruction::DrawRect {
+                point,
+                size,
+                color,
+                clip_point,
+                clip_size,
+            } => self.draw_rectangle(point, size, color, clip_point, clip_size),
             RenderInstruction::DrawTriangle {
                 point_a,
                 point_b,
                 point_c,
                 color,
-            } => self.draw_triangle(point_a, point_b, point_c, color),
+                clip_point,
+                clip_size,
+            } => self.draw_triangle(point_a, point_b, point_c, color, clip_point, clip_size),
             RenderInstruction::DrawImage {
                 point,
                 path,
                 options,
-            } => self.draw_image(point, path, options),
+                clip_point,
+                clip_size,
+            } => self.draw_image(point, path, options, clip_point, clip_size),
             RenderInstruction::DrawText {
                 point,
                 font_size,
                 string,
                 color,
-            } => self.draw_text(point, *font_size, string, color),
+                clip_point,
+                clip_size,
+            } => self.draw_text(point, *font_size, string, color, clip_point, clip_size),
         }
     }
 }

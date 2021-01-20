@@ -1,11 +1,12 @@
 use hyber::display::Display;
 use hyber::event::Event;
-use hyber::event::Mouse::CursorMoved;
-use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
+use hyber::renderer::{Message, RenderInstructionCollection, Renderer, AbsoluteWidgetCollection};
 use hyber::util::{Color, IDMachine, Vector2D};
 use hyber::widget::grid_view::GridViewWidget;
 use hyber::widget::label::LabelWidget;
 use hyber::widget::root::RootWidget;
+use hyber::widget::button_view::ButtonViewWidget;
+use hyber::widget::checkbox::CheckBoxWidget;
 use hyber::widget::{Axis, Layout, Widget};
 
 use std::cell::RefCell;
@@ -27,10 +28,11 @@ pub enum MessageXPTO {
         num_ptr: Weak<RefCell<i64>>,
         event: Option<Event>,
     },
-    Resize {
-        grid_ptr: Weak<RefCell<GridViewWidget>>,
+    CheckBoxTrigger{
+        btn_ptr: Weak<RefCell<ButtonViewWidget>>,
+        checkbox_ptr: Weak<RefCell<CheckBoxWidget>>,
         event: Option<Event>,
-    },
+    }
 }
 
 // t uconsegues :) we are rooting for you
@@ -65,11 +67,10 @@ impl Message for MessageXPTO {
                     }
                 }
             }
-            MessageXPTO::Resize { grid_ptr, event } => {
-                if let Some(grid) = grid_ptr.upgrade() {
-                    if let Some(Event::Mouse(CursorMoved { x, y })) = event {
-                        grid.borrow_mut()
-                            .set_original_size(Vector2D::new(*x as f64, *y as f64))
+            MessageXPTO::CheckBoxTrigger{btn_ptr, checkbox_ptr, event: _} => {
+                if let Some(button) = btn_ptr.upgrade(){
+                    if let Some(checkbox) = checkbox_ptr.upgrade(){
+                        button.borrow_mut().set_is_clickable(checkbox.borrow_mut().get_is_checked())
                     }
                 }
             }
@@ -92,9 +93,14 @@ impl Message for MessageXPTO {
             } => {
                 *event = Some(new_event);
             }
-            MessageXPTO::Resize { grid_ptr: _, event } => {
+            MessageXPTO::CheckBoxTrigger{
+                btn_ptr:_,
+                checkbox_ptr:_,
+                event,
+            } => {
                 *event = Some(new_event);
             }
+            
         }
     }
 }
@@ -115,41 +121,55 @@ fn main() {
 
     let absolute_collection = Rc::new(RefCell::new(AbsoluteWidgetCollection::new()));
 
+    let counter = Rc::new(RefCell::new(0));
+
+    let label_1 = Rc::new(RefCell::new(LabelWidget::new(
+        String::from("Teste1!"),
+        Vector2D::new(200f64, 200f64),
+        33,
+        Color::from_hex(0xffff8026),
+        Color::from_hex(0xff004dff),
+    )));
+
+    let button = Rc::new(RefCell::new(ButtonViewWidget::new(
+        Vector2D::new(200f64,200f64),
+        false,
+        Color::from_hex(0x36bd2b00),
+        Some(Box::new(MessageXPTO::Increment {
+            label_ptr: Rc::downgrade(&label_1),
+            num_ptr: Rc::downgrade(&counter),
+            event: None,
+        })),
+        Some(Box::new(MessageXPTO::Decrement {
+            label_ptr: Rc::downgrade(&label_1),
+            num_ptr: Rc::downgrade(&counter),
+            event: None,
+        }))
+        
+    )));
+
+    let checkbox = Rc::new(RefCell::new(CheckBoxWidget::new(
+        Vector2D::new(20., 20.),
+        Color::from_hex(0xFFFFFFFF),
+        Color::from_hex(0xFF26B6EC),
+        None,
+        false,
+        2.,
+        0.25,
+    )));
+    
+    checkbox.borrow_mut().set_message(
+        Some(Box::new(MessageXPTO::CheckBoxTrigger{
+            btn_ptr: Rc::downgrade(&button),
+            checkbox_ptr: Rc::downgrade(&checkbox),
+            event: None,
+    })));
+
     let grid = Rc::new(RefCell::new(GridViewWidget::new(
         Vector2D::new(WIDTH, HEIGHT),
         Axis::Vertical,
         3,
     )));
-
-    let mut label_vector = Vec::new();
-
-    for i in 0..8 {
-        label_vector.push(Rc::new(RefCell::new(LabelWidget::new(
-            String::from(format!("label {}", i)),
-            Vector2D::new(2000., 2000.),
-            20,
-            Color::from_hex(0xffffed00),
-            Color::from_hex(0xff750787),
-        ))))
-    }
-
-    let label_1 = Rc::new(RefCell::new(LabelWidget::new(
-        String::from("Teste1!"),
-        Vector2D::new(2000., 2000.),
-        33,
-        Color::from_hex(0xff008026),
-        Color::from_hex(0xff004dff),
-    )));
-
-    let label_2 = Rc::new(RefCell::new(LabelWidget::new(
-        String::from("Teste2!"),
-        Vector2D::new(2000., 2000.),
-        33,
-        Color::from_hex(0xff509996),
-        Color::from_hex(0xff004dff),
-    )));
-
-    let counter = Rc::new(RefCell::new(0));
 
     let root = Rc::new(RefCell::new(RootWidget::new(
         display.get_size(),
@@ -164,20 +184,18 @@ fn main() {
             label_ptr: Rc::downgrade(&label_1),
             num_ptr: Rc::downgrade(&counter),
             event: None,
-        }),
+        })
     )));
-
+    button.borrow_mut().add_as_child(Rc::downgrade(&label_1) as Weak<RefCell<dyn Widget>>);
     // definir relaçoes de parentesco
+    //grid.borrow_mut().add_as_child(Rc::downgrade(&label_1) as Weak<RefCell<dyn Widget>>);
     grid.borrow_mut()
-        .add_as_child(Rc::downgrade(&label_1) as Weak<RefCell<dyn Widget>>);
+        .add_as_child(Rc::downgrade(&button) as Weak<RefCell<dyn Widget>>);
     grid.borrow_mut()
-        .add_as_child(Rc::downgrade(&label_2) as Weak<RefCell<dyn Widget>>);
-    for child in label_vector.iter() {
-        grid.borrow_mut()
-            .add_as_child(Rc::downgrade(&child) as Weak<RefCell<dyn Widget>>);
-    }
+        .add_as_child(Rc::downgrade(&checkbox) as Weak<RefCell<dyn Widget>>);
     root.borrow_mut()
         .add_as_child(Rc::downgrade(&grid) as Weak<RefCell<dyn Widget>>);
+    //root.borrow_mut().
     let mut renderer = hyber_raqote::Raqote::new(WIDTH as i32, HEIGHT as i32);
     let events = renderer.create_events_queue();
     let messages = renderer.create_message_queue();
@@ -192,11 +210,4 @@ fn main() {
         Rc::downgrade(&collection),
         Rc::downgrade(&absolute_collection),
     );
-    // Limit to max ~60 fps update rate
-    /*while window.is_open() && !window.is_key_down(Key::Escape) {
-    if window.get_mouse_down(minifb::MouseButton::Left) {
-        let event = Rendererxpto::map_events(EventoCliente::left_click);
-        queue.enqueue(event);
-    }*/
-    // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
 }

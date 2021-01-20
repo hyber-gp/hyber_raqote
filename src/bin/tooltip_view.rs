@@ -1,11 +1,11 @@
 use hyber::display::Display;
 use hyber::event::Event;
-use hyber::event::Mouse::CursorMoved;
 use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
 use hyber::util::{Color, IDMachine, Vector2D};
 use hyber::widget::grid_view::GridViewWidget;
 use hyber::widget::label::LabelWidget;
 use hyber::widget::root::RootWidget;
+use hyber::widget::tooltip_view::TooltipViewWidget;
 use hyber::widget::{Axis, Layout, Widget};
 
 use std::cell::RefCell;
@@ -65,14 +65,7 @@ impl Message for MessageXPTO {
                     }
                 }
             }
-            MessageXPTO::Resize { grid_ptr, event } => {
-                if let Some(grid) = grid_ptr.upgrade() {
-                    if let Some(Event::Mouse(CursorMoved { x, y })) = event {
-                        grid.borrow_mut()
-                            .set_original_size(Vector2D::new(*x as f64, *y as f64))
-                    }
-                }
-            }
+            _ => (),
         }
     }
 
@@ -123,7 +116,7 @@ fn main() {
 
     let mut label_vector = Vec::new();
 
-    for i in 0..8 {
+    for i in 0..4 {
         label_vector.push(Rc::new(RefCell::new(LabelWidget::new(
             String::from(format!("label {}", i)),
             Vector2D::new(2000., 2000.),
@@ -140,13 +133,19 @@ fn main() {
         Color::from_hex(0xff008026),
         Color::from_hex(0xff004dff),
     )));
-
     let label_2 = Rc::new(RefCell::new(LabelWidget::new(
         String::from("Teste2!"),
-        Vector2D::new(2000., 2000.),
+        Vector2D::new(100., 100.),
         33,
         Color::from_hex(0xff509996),
         Color::from_hex(0xff004dff),
+    )));
+
+    let tooltip = Rc::new(RefCell::new(TooltipViewWidget::new(
+        Vector2D::new(2000., 2000.),
+        Rc::downgrade(&collection),
+        Rc::downgrade(&absolute_collection),
+        Rc::downgrade(&label_2) as Weak<RefCell<dyn Widget>>,
     )));
 
     let counter = Rc::new(RefCell::new(0));
@@ -171,13 +170,14 @@ fn main() {
     grid.borrow_mut()
         .add_as_child(Rc::downgrade(&label_1) as Weak<RefCell<dyn Widget>>);
     grid.borrow_mut()
-        .add_as_child(Rc::downgrade(&label_2) as Weak<RefCell<dyn Widget>>);
+        .add_as_child(Rc::downgrade(&tooltip) as Weak<RefCell<dyn Widget>>);
     for child in label_vector.iter() {
         grid.borrow_mut()
             .add_as_child(Rc::downgrade(&child) as Weak<RefCell<dyn Widget>>);
     }
     root.borrow_mut()
         .add_as_child(Rc::downgrade(&grid) as Weak<RefCell<dyn Widget>>);
+
     let mut renderer = hyber_raqote::Raqote::new(WIDTH as i32, HEIGHT as i32);
     let events = renderer.create_events_queue();
     let messages = renderer.create_message_queue();

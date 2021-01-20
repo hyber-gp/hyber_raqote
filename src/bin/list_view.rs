@@ -1,10 +1,10 @@
 use hyber::display::Display;
 use hyber::event::Event;
 use hyber::event::Mouse::CursorMoved;
-use hyber::renderer::{Message, RenderInstructionCollection, Renderer};
+use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
 use hyber::util::{Color, IDMachine, Vector2D};
-use hyber::widget::list_view::ListViewWidget;
 use hyber::widget::label::LabelWidget;
+use hyber::widget::list_view::ListViewWidget;
 use hyber::widget::root::RootWidget;
 use hyber::widget::{Axis, Layout, Widget};
 
@@ -68,7 +68,8 @@ impl Message for MessageXPTO {
             MessageXPTO::Resize { list_ptr, event } => {
                 if let Some(list) = list_ptr.upgrade() {
                     if let Some(Event::Mouse(CursorMoved { x, y })) = event {
-                        list.borrow_mut().set_original_size(Vector2D::new(*x as f64, *y as f64))
+                        list.borrow_mut()
+                            .set_original_size(Vector2D::new(*x as f64, *y as f64))
                     }
                 }
             }
@@ -110,11 +111,13 @@ fn main() {
     );
     let mut id_machine = IDMachine::new();
 
-    let mut collection = RenderInstructionCollection::new();
+    let collection = Rc::new(RefCell::new(RenderInstructionCollection::new()));
+
+    let absolute_collection = Rc::new(RefCell::new(AbsoluteWidgetCollection::new()));
 
     let list = Rc::new(RefCell::new(ListViewWidget::new(
         Vector2D::new(WIDTH, HEIGHT),
-        Axis::Vertical
+        Axis::Vertical,
     )));
 
     let mut label_vector = Vec::new();
@@ -122,8 +125,8 @@ fn main() {
     for i in 0..4 {
         label_vector.push(Rc::new(RefCell::new(LabelWidget::new(
             String::from(format!("label {}", i)),
-            Vector2D::new(2000., 50.),
-            20,
+            Vector2D::new(2000., 5.),
+            200,
             Color::from_hex(0xffffed00),
             Color::from_hex(0xff750787),
         ))))
@@ -161,10 +164,6 @@ fn main() {
             num_ptr: Rc::downgrade(&counter),
             event: None,
         }),
-        Box::new(MessageXPTO::Resize {
-            list_ptr: Rc::downgrade(&list),
-            event: None,
-        }),
     )));
 
     // definir relaçoes de parentesco
@@ -189,7 +188,8 @@ fn main() {
         &mut display,
         Vector2D::new(WIDTH, HEIGHT),
         &mut id_machine,
-        &mut collection,
+        Rc::downgrade(&collection),
+        Rc::downgrade(&absolute_collection),
     );
     // Limit to max ~60 fps update rate
     /*while window.is_open() && !window.is_key_down(Key::Escape) {
