@@ -149,22 +149,10 @@ fn main() {
         Color::from_hex(0xff004dff),
     )));
 
-    let counter = Rc::new(RefCell::new(0));
-
     let root = Rc::new(RefCell::new(RootWidget::new(
         display.get_size(),
         Color::new(0xff, 0xff, 0xff, 0xff),
         Layout::Box(Axis::Horizontal),
-        Box::new(MessageXPTO::Increment {
-            label_ptr: Rc::downgrade(&label_1),
-            num_ptr: Rc::downgrade(&counter),
-            event: None,
-        }),
-        Box::new(MessageXPTO::Decrement {
-            label_ptr: Rc::downgrade(&label_1),
-            num_ptr: Rc::downgrade(&counter),
-            event: None,
-        }),
     )));
 
     // definir relaçoes de parentesco

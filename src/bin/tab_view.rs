@@ -27,10 +27,6 @@ pub enum MessageXPTO {
         num_ptr: Weak<RefCell<i64>>,
         event: Option<Event>,
     },
-    Resize {
-        grid_ptr: Weak<RefCell<GridViewWidget>>,
-        event: Option<Event>,
-    },
     TabPress {
         //  tab_ptr: Weak<RefCell<LabelWidget>>,
         event: Option<Event>,
@@ -74,13 +70,6 @@ impl Message for MessageXPTO {
                     }
                 }
             }
-            MessageXPTO::Resize { grid_ptr, event } => {
-                /*if let Some(grid) = grid_ptr.upgrade() {
-                    if let Some(Event::Mouse(CursorMoved { x, y })) = event {
-                        grid.borrow_mut().set_original_size(Vector2D::new(*x as f64, *y as f64))
-                    }
-                }*/
-            }
             MessageXPTO::TabPress {
                 //    tab_ptr,
                 event: _,
@@ -95,7 +84,7 @@ impl Message for MessageXPTO {
                 println!("Tab was Moved");
                 if let Some(tab) = tab_ptr.upgrade() {
                     if let Some(tab_grid) = tab_grid_ptr.upgrade() {
-                        let movedTabID = tab.borrow_mut().id();
+                        let moved_tab_id = tab.borrow_mut().id();
                         let mut index = 0;
                         let mut index_to_be_moved1 = 0;
                         let mut index_to_be_moved2 = 0;
@@ -104,7 +93,7 @@ impl Message for MessageXPTO {
                             if let Some(child) = value.upgrade() {
                                 let mut child = child.borrow_mut();
                                 //Check if it is a diferent tab than the one moved
-                                if child.id() != movedTabID {
+                                if child.id() != moved_tab_id {
                                     //Check if mouse moved inside other tabs
                                     if child
                                         .is_cursor_inside(tab.borrow_mut().get_moved_cursor_pos())
@@ -149,9 +138,6 @@ impl Message for MessageXPTO {
             } => {
                 *event = Some(new_event);
             }
-            MessageXPTO::Resize { grid_ptr: _, event } => {
-                *event = Some(new_event);
-            }
             MessageXPTO::TabPress {
                 //     tab_ptr: _,
                 event,
@@ -185,14 +171,6 @@ fn main() {
     let collection = Rc::new(RefCell::new(RenderInstructionCollection::new()));
 
     let absolute_collection = Rc::new(RefCell::new(AbsoluteWidgetCollection::new()));
-
-    let grid = Rc::new(RefCell::new(GridViewWidget::new(
-        Vector2D::new(WIDTH, HEIGHT),
-        Axis::Vertical,
-        3,
-    )));
-
-    let counter = Rc::new(RefCell::new(0));
 
     let tab_grid = Rc::new(RefCell::new(GridViewWidget::new(
         Vector2D::new(500., 200.),
@@ -278,16 +256,6 @@ fn main() {
         display.get_size(),
         Color::new(0xff, 0xff, 0xff, 0xff),
         Layout::Box(Axis::Horizontal),
-        Box::new(MessageXPTO::Increment {
-            label_ptr: Rc::downgrade(&label_1),
-            num_ptr: Rc::downgrade(&counter),
-            event: None,
-        }),
-        Box::new(MessageXPTO::Decrement {
-            label_ptr: Rc::downgrade(&label_1),
-            num_ptr: Rc::downgrade(&counter),
-            event: None,
-        }),
     )));
 
     // definir relaçoes de parentesco

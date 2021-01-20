@@ -1,12 +1,12 @@
 use hyber::display::Display;
 use hyber::event::Event;
-use hyber::event::Mouse::CursorMoved;
-use hyber::renderer::{Message, RenderInstructionCollection, Renderer};
+use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
 use hyber::util::{Color, IDMachine, Vector2D};
 use hyber::widget::grid_view::GridViewWidget;
 use hyber::widget::label::LabelWidget;
 use hyber::widget::progress_bar::ProgressBarWidget;
 use hyber::widget::root::RootWidget;
+use hyber::widget::slider::SliderWidget;
 use hyber::widget::{Axis, Layout, Widget};
 
 use std::cell::RefCell;
@@ -23,6 +23,13 @@ pub enum MessageXPTO {
         progress_ptr: Weak<RefCell<ProgressBarWidget>>,
         num_ptr: Weak<RefCell<f64>>,
         inc: f64,
+        event: Option<Event>,
+    },
+    Slide {
+        label_ptr: Weak<RefCell<LabelWidget>>,
+        slider_ptr: Weak<RefCell<SliderWidget>>,
+        progress_ptr: Weak<RefCell<ProgressBarWidget>>,
+        num_ptr: Weak<RefCell<f64>>,
         event: Option<Event>,
     },
 }
@@ -42,17 +49,38 @@ impl Message for MessageXPTO {
                     if let Some(progress) = progress_ptr.upgrade() {
                         if let Some(num) = num_ptr.upgrade() {
                             *num.borrow_mut() += inc;
-                            
                             if *num.borrow() > 100.0 {
                                 *num.borrow_mut() = 100.0;
                             }
-                            
                             label
-                            .borrow_mut()
-                            .set_text(String::from(format!("Progress: {:.1}%", *num.borrow())));
-                            progress
-                            .borrow_mut()
-                            .set_progress(*num.borrow());
+                                .borrow_mut()
+                                .set_text(String::from(format!("Progress: {:.1}%", *num.borrow())));
+                            progress.borrow_mut().set_progress(*num.borrow());
+                        }
+                    }
+                }
+            }
+            MessageXPTO::Slide {
+                label_ptr,
+                slider_ptr,
+                progress_ptr,
+                num_ptr,
+                event: _,
+            } => {
+                if let Some(label) = label_ptr.upgrade() {
+                    if let Some(slider) = slider_ptr.upgrade() {
+                        if let Some(progress) = progress_ptr.upgrade() {
+                            if let Some(num) = num_ptr.upgrade() {
+                                *num.borrow_mut() = slider.borrow_mut().get_slider_value() as f64;
+                                if *num.borrow() > 100.0 {
+                                    *num.borrow_mut() = 100.0;
+                                }
+                                label.borrow_mut().set_text(String::from(format!(
+                                    "Progress: {:.1}%",
+                                    *num.borrow()
+                                )));
+                                progress.borrow_mut().set_progress(*num.borrow());
+                            }
                         }
                     }
                 }
@@ -67,6 +95,15 @@ impl Message for MessageXPTO {
                 progress_ptr: _,
                 num_ptr: _,
                 inc: _,
+                event,
+            } => {
+                *event = Some(new_event);
+            }
+            MessageXPTO::Slide {
+                label_ptr: _,
+                slider_ptr: _,
+                progress_ptr: _,
+                num_ptr: _,
                 event,
             } => {
                 *event = Some(new_event);
@@ -87,7 +124,9 @@ fn main() {
     );
     let mut id_machine = IDMachine::new();
 
-    let mut collection = RenderInstructionCollection::new();
+    let collection = Rc::new(RefCell::new(RenderInstructionCollection::new()));
+
+    let absolute_collection = Rc::new(RefCell::new(AbsoluteWidgetCollection::new()));
 
     let grid = Rc::new(RefCell::new(GridViewWidget::new(
         Vector2D::new(WIDTH, HEIGHT),
@@ -97,7 +136,7 @@ fn main() {
 
     let label_1 = Rc::new(RefCell::new(LabelWidget::new(
         String::from("Progress: 0%"),
-        Vector2D::new(100., 100.),
+        Vector2D::new(500., 150.),
         33,
         Color::from_hex(0xffffffff),
         Color::from_hex(0xff004dff),
@@ -119,37 +158,55 @@ fn main() {
         Layout::Box(Axis::Horizontal),
     )));
 
+    let slider = Rc::new(RefCell::new(SliderWidget::new(
+        Vector2D::new(500., 50.),
+        Color::from_hex(0xFF26B6EC),
+        Color::from_hex(0xFF000000),
+        Vector2D::new(8., 8.),
+        (0, 100),
+        1,
+        100,
+        None,
+    )));
+
+    slider
+        .borrow_mut()
+        .set_message(Some(Box::new(MessageXPTO::Slide {
+            label_ptr: Rc::downgrade(&label_1),
+            slider_ptr: Rc::downgrade(&slider),
+            progress_ptr: Rc::downgrade(&progressbar_1),
+            num_ptr: Rc::downgrade(&counter),
+            event: None,
+        })));
+
     // definir relaçoes de parentesco
     grid.borrow_mut()
         .add_as_child(Rc::downgrade(&label_1) as Weak<RefCell<dyn Widget>>);
     grid.borrow_mut()
         .add_as_child(Rc::downgrade(&progressbar_1) as Weak<RefCell<dyn Widget>>);
+    grid.borrow_mut()
+        .add_as_child(Rc::downgrade(&slider) as Weak<RefCell<dyn Widget>>);
     root.borrow_mut()
         .add_as_child(Rc::downgrade(&grid) as Weak<RefCell<dyn Widget>>);
     let mut renderer = hyber_raqote::Raqote::new(WIDTH as i32, HEIGHT as i32);
     let events = renderer.create_events_queue();
     let mut messages = renderer.create_message_queue();
 
-    messages.enqueue(
-        Box::new(MessageXPTO::Progress{
-            label_ptr: Rc::downgrade(&label_1),
-            progress_ptr: Rc::downgrade(&progressbar_1),
-            num_ptr: Rc::downgrade(&counter),
-            inc: 5.2,
-            event: None,
-        })
-    );
+    messages.enqueue(Box::new(MessageXPTO::Progress {
+        label_ptr: Rc::downgrade(&label_1),
+        progress_ptr: Rc::downgrade(&progressbar_1),
+        num_ptr: Rc::downgrade(&counter),
+        inc: 5.2,
+        event: None,
+    }));
 
-    messages.enqueue(
-        Box::new(MessageXPTO::Progress{
-            label_ptr: Rc::downgrade(&label_1),
-            progress_ptr: Rc::downgrade(&progressbar_1),
-            num_ptr: Rc::downgrade(&counter),
-            inc: 15.6,
-            event: None,
-        })
-    );
-        
+    messages.enqueue(Box::new(MessageXPTO::Progress {
+        label_ptr: Rc::downgrade(&label_1),
+        progress_ptr: Rc::downgrade(&progressbar_1),
+        num_ptr: Rc::downgrade(&counter),
+        inc: 15.6,
+        event: None,
+    }));
     renderer.event_loop(
         events,
         messages,
@@ -157,7 +214,8 @@ fn main() {
         &mut display,
         Vector2D::new(WIDTH, HEIGHT),
         &mut id_machine,
-        &mut collection,
+        Rc::downgrade(&collection),
+        Rc::downgrade(&absolute_collection),
     );
     // Limit to max ~60 fps update rate
     /*while window.is_open() && !window.is_key_down(Key::Escape) {

@@ -125,8 +125,8 @@ fn main() {
     for i in 0..4 {
         label_vector.push(Rc::new(RefCell::new(LabelWidget::new(
             String::from(format!("label {}", i)),
-            Vector2D::new(2000., 5.),
-            200,
+            Vector2D::new(2000., 50.),
+            20,
             Color::from_hex(0xffffed00),
             Color::from_hex(0xff750787),
         ))))
@@ -148,22 +148,10 @@ fn main() {
         Color::from_hex(0xff004dff),
     )));
 
-    let counter = Rc::new(RefCell::new(0));
-
     let root = Rc::new(RefCell::new(RootWidget::new(
         display.get_size(),
         Color::new(0xff, 0xff, 0xff, 0xff),
         Layout::Box(Axis::Horizontal),
-        Box::new(MessageXPTO::Increment {
-            label_ptr: Rc::downgrade(&label_1),
-            num_ptr: Rc::downgrade(&counter),
-            event: None,
-        }),
-        Box::new(MessageXPTO::Decrement {
-            label_ptr: Rc::downgrade(&label_2),
-            num_ptr: Rc::downgrade(&counter),
-            event: None,
-        }),
     )));
 
     // definir relaçoes de parentesco

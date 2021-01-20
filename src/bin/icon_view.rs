@@ -110,8 +110,6 @@ fn main() {
 
     let absolute_collection = Rc::new(RefCell::new(AbsoluteWidgetCollection::new()));
 
-    let counter = Rc::new(RefCell::new(0));
-
     let icon = Rc::new(RefCell::new(IconWidget::new(
         String::from("rust.png"),  // path
         Vector2D::new(200., 200.), // size of the box layout
@@ -131,17 +129,7 @@ fn main() {
     let root = Rc::new(RefCell::new(RootWidget::new(
         display.get_size(),
         Color::new(0xff, 0xff, 0xff, 0xff),
-        Layout::Box(Axis::Horizontal),
-        Box::new(MessageXPTO::Increment {
-            icon_ptr: Rc::downgrade(&icon),
-            num_ptr: Rc::downgrade(&counter),
-            event: None,
-        }),
-        Box::new(MessageXPTO::Decrement {
-            icon_ptr: Rc::downgrade(&icon),
-            num_ptr: Rc::downgrade(&counter),
-            event: None,
-        }),
+        Layout::Box(Axis::Horizontal)
     )));
 
     // definir relaçoes de parentesco
