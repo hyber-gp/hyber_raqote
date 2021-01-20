@@ -118,14 +118,14 @@ fn main() {
     let grid = Rc::new(RefCell::new(GridViewWidget::new(
         Vector2D::new(WIDTH, HEIGHT),
         Axis::Vertical,
-        3,
+        10,
     )));
 
     let mut label_vector = Vec::new();
 
-    for i in 0..8 {
+    for i in 0..98 {
         label_vector.push(Rc::new(RefCell::new(LabelWidget::new(
-            String::from(format!("label {}", i)),
+            String::from(format!("label {}", i+2)),
             Vector2D::new(2000., 2000.),
             20,
             Color::from_hex(0xffffed00),
