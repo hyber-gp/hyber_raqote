@@ -81,7 +81,10 @@ impl Message for MessageXPTO {
                 tab_ptr,
                 event: _,
             } => {
-                println!("Tab was Moved");
+                ///The following implementation changes the position of the tags when dragged
+                ///This is not ideal! 
+                ///The implementation should be done in Hyber! The problem is: it needs access to the tab's parent in order to change it's position
+                ///and you cant borrow the parent's pointer because it is already being used recursively on the OnEvent function.
                 if let Some(tab) = tab_ptr.upgrade() {
                     if let Some(tab_grid) = tab_grid_ptr.upgrade() {
                         let moved_tab_id = tab.borrow_mut().id();
@@ -110,6 +113,7 @@ impl Message for MessageXPTO {
                             index = index + 1;
                         }
                         if moved {
+                            // swap tabs order if moved
                             tab_grid
                                 .borrow_mut()
                                 .get_children()
