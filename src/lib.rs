@@ -69,16 +69,25 @@ pub enum EventClient {
     },
 }
 
+/// State of the mouse according to the status of his buttons
+/// and cursor's position
 #[derive(Default)]
 pub struct MouseState {
+    /// The current position of the mouse
     pub mouse_pos: (f32, f32),
+    /// Wheter the left mouse button is pressed
     pub button_left: bool,
+    /// Wheter the middle mouse button is pressed
     pub button_middle: bool,
+    /// Wheter the right mouse button is pressed
     pub button_right: bool,
+    /// Wheter the mouse cursos is whithin the window display
     pub mouse_on_window: bool,
 }
 
+/// State of the window
 pub struct WindowState {
+    /// The current window's size (width and height)
     pub window_size: (usize, usize),
 }
 
