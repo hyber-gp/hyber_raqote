@@ -553,8 +553,8 @@ impl Renderer<DisplayMinifb, EventClient> for Raqote {
             EventClient::Scroll { x: new_x, y: new_y } => {
                 event::Event::Mouse(event::Mouse::WheelScrolled {
                     delta: event::ScrollDelta::Pixels {
-                        x: new_x as usize,
-                        y: new_y as usize,
+                        x: new_x as f64,
+                        y: new_y as f64,
                     },
                 })
             }
