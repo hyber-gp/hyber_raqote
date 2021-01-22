@@ -1,4 +1,4 @@
-//! Contains the implementation of a [`ButtonViewWidget`] using the [`hyber`]
+//! Contains the implementation of a `ButtonViewWidget` using the [`hyber`]
 //! (`crate`).
 //!
 //! Button, on the [`hyber`](`crate`), is a widget implemented according 
@@ -25,14 +25,14 @@ const WIDTH: f64 = 640.;
 /// The predefined display's height
 const HEIGHT: f64 = 360.;
 
-/// Messages that the [`ButtonViewWidget`] needs to handle
+/// Messages that the `ButtonViewWidget` needs to handle
 #[derive(Clone)]
 pub enum MessageXPTO {
     /// Message to increment the value of the counter
-    /// displayed by a label within the [`ButtonViewWidget`]
+    /// displayed by a label within the `ButtonViewWidget`
     Increment {
-        /// Reference to the memory location of the [`LabelWidget`]
-        /// responsible to displays some text within the [`ButtonViewWidget`]
+        /// Reference to the memory location of the `LabelWidget`
+        /// responsible to displays some text within the `ButtonViewWidget`
         label_ptr: Weak<RefCell<LabelWidget>>,
         /// Reference to the memory location of the counter that
         /// needs to be updated
@@ -41,10 +41,10 @@ pub enum MessageXPTO {
         event: Option<Event>,
     },
     /// Message to decrement the value of the counter
-    /// displayed by a label within the [`ButtonViewWidget`]
+    /// displayed by a label within the `ButtonViewWidget`
     Decrement {
-        /// Reference to the memory location of the [`LabelWidget`]
-        /// responsible to displays some text within the [`ButtonViewWidget`]
+        /// Reference to the memory location of the `LabelWidget`
+        /// responsible to displays some text within the `ButtonViewWidget`
         label_ptr: Weak<RefCell<LabelWidget>>,
         /// Reference to the memory location of the counter that
         /// needs to be updated
@@ -139,11 +139,11 @@ fn main() {
     // Sets up the absolute widgets collection
     let absolute_collection = Rc::new(RefCell::new(AbsoluteWidgetCollection::new()));
 
-    // Initializes the counter to be displayed by the [`LabelWidget`]
+    // Initializes the counter to be displayed by the `LabelWidget`
     let counter = Rc::new(RefCell::new(0));
 
-    // Initializes the [`LabelWidget`] to display the text within the [`ButtonViewWidget`]
-    let label_1 = Rc::new(RefCell::new(LabelWidget::new(
+    // Initializes the `LabelWidget` to display the text within the `ButtonViewWidget`
+    let label = Rc::new(RefCell::new(LabelWidget::new(
         String::from("Teste1!"),
         Vector2D::new(200f64, 200f64),
         33,
@@ -151,31 +151,31 @@ fn main() {
         Color::from_hex(0xff004dff),
     )));
 
-    // Initializes the [`ButtonViewWidget`]
+    // Initializes the `ButtonViewWidget`
     let button = Rc::new(RefCell::new(ButtonViewWidget::new(
         Vector2D::new(200f64,200f64),
         true,
         Color::from_hex(0x36bd2b00),
         Some(Box::new(MessageXPTO::Increment {
-            label_ptr: Rc::downgrade(&label_1),
+            label_ptr: Rc::downgrade(&label),
             num_ptr: Rc::downgrade(&counter),
             event: None,
         })),
         Some(Box::new(MessageXPTO::Decrement {
-            label_ptr: Rc::downgrade(&label_1),
+            label_ptr: Rc::downgrade(&label),
             num_ptr: Rc::downgrade(&counter),
             event: None,
         }))
     )));
 
-    // Initializes the [`GridViewWidget`] to hold the [`ButtonViewWidget`]
+    // Initializes the `GridViewWidget` to hold the `ButtonViewWidget`
     let grid = Rc::new(RefCell::new(GridViewWidget::new(
         Vector2D::new(WIDTH, HEIGHT),
         Axis::Vertical,
         3,
     )));
 
-    // Initializes the [`RootWidget`] to handle the widgets tree
+    // Initializes the `RootWidget` to handle the widgets tree
     let root = Rc::new(RefCell::new(RootWidget::new(
         display.get_size(),
         Color::new(0xff, 0xff, 0xff, 0xff),
@@ -184,13 +184,13 @@ fn main() {
 
     // The next instructions build the widgets relative tree
 
-    // Adds the [`LabelWidget`] as child of the [`ButtonViewWidget`]
+    // Adds the `LabelWidget` as child of the `ButtonViewWidget`
     button.borrow_mut()
-          .add_as_child(Rc::downgrade(&label_1) as Weak<RefCell<dyn Widget>>);
-    // Adds the [`ButtonViewWidget`] as child of the [`GridViewWidget`]
+          .add_as_child(Rc::downgrade(&label) as Weak<RefCell<dyn Widget>>);
+    // Adds the `ButtonViewWidget` as child of the `GridViewWidget`
     grid.borrow_mut()
         .add_as_child(Rc::downgrade(&button) as Weak<RefCell<dyn Widget>>);
-    // Adds the [`GridViewWidget`] as child of the [`RootWidget`]
+    // Adds the `GridViewWidget` as child of the `RootWidget`
     root.borrow_mut()
         .add_as_child(Rc::downgrade(&grid) as Weak<RefCell<dyn Widget>>);
 

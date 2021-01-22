@@ -174,7 +174,7 @@ fn main() {
     let counter = Rc::new(RefCell::new(0));
 
     // Initializes the [`LabelWidget`] to display the text within the [`ButtonViewWidget`]
-    let label_1 = Rc::new(RefCell::new(LabelWidget::new(
+    let label = Rc::new(RefCell::new(LabelWidget::new(
         String::from("Teste1!"),
         Vector2D::new(200f64, 200f64),
         33,
@@ -188,12 +188,12 @@ fn main() {
         false,
         Color::from_hex(0x36bd2b00),
         Some(Box::new(MessageXPTO::Increment {
-            label_ptr: Rc::downgrade(&label_1),
+            label_ptr: Rc::downgrade(&label),
             num_ptr: Rc::downgrade(&counter),
             event: None,
         })),
         Some(Box::new(MessageXPTO::Decrement {
-            label_ptr: Rc::downgrade(&label_1),
+            label_ptr: Rc::downgrade(&label),
             num_ptr: Rc::downgrade(&counter),
             event: None,
         }))
@@ -237,7 +237,7 @@ fn main() {
     // The next instructions build the widgets relative tree
 
     // Adds the `LabelWidget` as child of the `ButtonViewWidget`
-    button.borrow_mut().add_as_child(Rc::downgrade(&label_1) as Weak<RefCell<dyn Widget>>);
+    button.borrow_mut().add_as_child(Rc::downgrade(&label) as Weak<RefCell<dyn Widget>>);
     
     // Adds the `ButtonViewWidget` as child of the `GridViewWidget`
     grid.borrow_mut()
@@ -246,7 +246,7 @@ fn main() {
     grid.borrow_mut()
         .add_as_child(Rc::downgrade(&checkbox) as Weak<RefCell<dyn Widget>>);
     
-    // Adds the [`GridViewWidget`] as child of the [`RootWidget`]
+    // Adds the `GridViewWidget` as child of the `RootWidget`
     root.borrow_mut()
         .add_as_child(Rc::downgrade(&grid) as Weak<RefCell<dyn Widget>>);
 
