@@ -3,7 +3,6 @@ use hyber::event::Event;
 use hyber::event::Mouse::CursorMoved;
 use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
 use hyber::util::{Color, IDMachine, Vector2D};
-use hyber::widget::button_view::ButtonViewWidget;
 use hyber::widget::grid_view::GridViewWidget;
 use hyber::widget::label::LabelWidget;
 use hyber::widget::panel::PanelWidget;
@@ -47,7 +46,7 @@ impl Message for MessageXPTO {
                 if let Some(label) = label_ptr.upgrade() {
                     if let Some(num) = num_ptr.upgrade() {
                         *num.borrow_mut() += 1;
-                        if (*num.borrow_mut() % 2i64 != 0) {
+                        if *num.borrow_mut() % 2i64 != 0 {
                             println!("OPEN {}!", num.borrow_mut());
                             label
                                 .borrow_mut()
@@ -61,14 +60,12 @@ impl Message for MessageXPTO {
             }
             MessageXPTO::Close {
                 label_ptr,
-                num_ptr,
+                num_ptr: _,
                 event: _,
             } => {
                 if let Some(label) = label_ptr.upgrade() {
-                    if let Some(num) = num_ptr.upgrade() {
-                        println!("Close !");
-                        label.borrow_mut().set_original_size(Vector2D::new(0., 0.));
-                    }
+                    println!("Close !");
+                    label.borrow_mut().set_original_size(Vector2D::new(0., 0.));
                 }
             }
             MessageXPTO::Resize { grid_ptr, event } => {

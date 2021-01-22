@@ -28,9 +28,7 @@ const HEIGHT: f64 = 360.;
 #[derive(Clone)]
 pub enum MessageXPTO {
     /// Message to handle a click on a Tab of the `TabWidget`
-    TabPress {
-        event: Option<Event>,
-    },
+    TabPress { event: Option<Event> },
     /// Message to handle the dragging of a Tab of the `TabWidget`
     /// by the user
     TabMove {
@@ -47,9 +45,7 @@ pub enum MessageXPTO {
 impl Message for MessageXPTO {
     fn update(&self) {
         match self {
-            MessageXPTO::TabPress {
-                event: _,
-            } => {
+            MessageXPTO::TabPress { event: _ } => {
                 // Not used.
             }
             MessageXPTO::TabMove {
@@ -58,7 +54,7 @@ impl Message for MessageXPTO {
                 event: _,
             } => {
                 // TODO: The following implementation changes the position of the tags when dragged
-                // This is not ideal! 
+                // This is not ideal!
                 // The implementation should be done in Hyber! The problem is: it needs access to the tab's parent in order to change its position
                 // and you cannot borrow the parent's pointer because it is already being used recursively on the OnEvent function.
                 // Gets the memory reference of the `LabelWidget`
@@ -106,9 +102,7 @@ impl Message for MessageXPTO {
 
     fn set_event(&mut self, new_event: Event) {
         match self {
-            MessageXPTO::TabPress {
-                event,
-            } => {
+            MessageXPTO::TabPress { event } => {
                 *event = Some(new_event);
             }
             MessageXPTO::TabMove {
@@ -154,9 +148,7 @@ fn main() {
     let tab1 = Rc::new(RefCell::new(TabWidget::new(
         Vector2D::new(320., 200.),
         Color::from_hex(0xff509996),
-        Some(Box::new(MessageXPTO::TabPress {
-            event: None,
-        })),
+        Some(Box::new(MessageXPTO::TabPress { event: None })),
         None,
     )));
 
@@ -181,9 +173,7 @@ fn main() {
     let tab2 = Rc::new(RefCell::new(TabWidget::new(
         Vector2D::new(320., 200.),
         Color::from_hex(0xffd15c20),
-        Some(Box::new(MessageXPTO::TabPress {
-            event: None,
-        })),
+        Some(Box::new(MessageXPTO::TabPress { event: None })),
         None,
     )));
 
@@ -208,9 +198,7 @@ fn main() {
     let tab3 = Rc::new(RefCell::new(TabWidget::new(
         Vector2D::new(320., 200.),
         Color::from_hex(0xffd15390),
-        Some(Box::new(MessageXPTO::TabPress {
-            event: None,
-        })),
+        Some(Box::new(MessageXPTO::TabPress { event: None })),
         None,
     )));
 
@@ -239,7 +227,6 @@ fn main() {
     )));
 
     // The next instructions build the widgets relative tree
-    
     // Adds the `LabelWidget` #01 as child of the `TabWidget` #01
     tab1.borrow_mut()
         .add_as_child(Rc::downgrade(&label_1) as Weak<RefCell<dyn Widget>>);
@@ -267,7 +254,7 @@ fn main() {
     root.borrow_mut()
         .add_as_child(Rc::downgrade(&tab_grid) as Weak<RefCell<dyn Widget>>);
 
-    // Initializes the renderer built with [`raqote`](`crate`)  
+    // Initializes the renderer built with [`raqote`](`crate`)
     let mut renderer = hyber_raqote::Raqote::new(WIDTH as i32, HEIGHT as i32);
     let events = renderer.create_events_queue();
     let messages = renderer.create_message_queue();

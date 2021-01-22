@@ -1,14 +1,12 @@
 //! Contains the implementation of a `GridViewWidget` using the [`hyber`]
 //! (`crate`).
 //!
-//! The Grid View, on the [`hyber`](`crate`), is a widget implemented according 
+//! The Grid View, on the [`hyber`](`crate`), is a widget implemented according
 //! to the [`Widget`] trait but with his own properties. This properties
 //! need to be assigned by programmers.
 
 use hyber::display::Display;
-use hyber::event::Event;
-use hyber::event::Mouse::CursorMoved;
-use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
+use hyber::renderer::{AbsoluteWidgetCollection, RenderInstructionCollection, Renderer};
 use hyber::util::{Color, IDMachine, Vector2D};
 use hyber::widget::grid_view::GridViewWidget;
 use hyber::widget::label::LabelWidget;
@@ -35,7 +33,6 @@ fn main() {
             ..hyber::display::DisplayDescritor::default()
         },
     );
-    
     // Sets up the identifier to this machine
     let mut id_machine = IDMachine::new();
 
@@ -52,7 +49,7 @@ fn main() {
     for i in 0..8 {
         // Initializes and inserts a `LabelWidget` on the previous vector
         label_vector.push(Rc::new(RefCell::new(LabelWidget::new(
-            String::from(format!("label {}", i+2)),
+            String::from(format!("label {}", i + 2)),
             Vector2D::new(2000., 2000.),
             20,
             Color::from_hex(0xffffed00),

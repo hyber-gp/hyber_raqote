@@ -1,13 +1,12 @@
 //! Contains the implementation of a `TooltipViewWidget` using the [`hyber`]
 //! (`crate`).
 //!
-//! Tooltip, on the [`hyber`](`crate`), is a widget implemented according 
+//! Tooltip, on the [`hyber`](`crate`), is a widget implemented according
 //! to the [`Widget`] trait but with his own properties. This properties
 //! need to be assigned by programmers.
 
 use hyber::display::Display;
-use hyber::event::Event;
-use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
+use hyber::renderer::{AbsoluteWidgetCollection, RenderInstructionCollection, Renderer};
 use hyber::util::{Color, IDMachine, Vector2D};
 use hyber::widget::grid_view::GridViewWidget;
 use hyber::widget::label::LabelWidget;
@@ -105,11 +104,9 @@ fn main() {
     // Adds a `LabelWidget` as child of the `GridViewWidget`
     grid.borrow_mut()
         .add_as_child(Rc::downgrade(&label_1) as Weak<RefCell<dyn Widget>>);
-    
     // Adds the `TooltipViewWidget` as child of the `GridViewWidget`
     grid.borrow_mut()
         .add_as_child(Rc::downgrade(&tooltip) as Weak<RefCell<dyn Widget>>);
-    
     // Iterate over the vector of `LabelWidget`
     for child in label_vector.iter() {
         // Adds a `LabelWidget` as child of the `ListViewWidget`

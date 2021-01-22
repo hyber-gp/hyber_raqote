@@ -1,13 +1,12 @@
 //! Contains the implementation of a `ButtonViewWidget` using the [`hyber`]
 //! (`crate`).
 //!
-//! Button, on the [`hyber`](`crate`), is a widget implemented according 
+//! Button, on the [`hyber`](`crate`), is a widget implemented according
 //! to the [`Widget`] trait but with his own properties. This properties
 //! need to be assigned by programmers.
 
 use hyber::display::Display;
 use hyber::event::Event;
-use hyber::event::Mouse::CursorMoved;
 use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
 use hyber::util::{Color, IDMachine, Vector2D};
 use hyber::widget::button_view::ButtonViewWidget;
@@ -179,14 +178,15 @@ fn main() {
     let root = Rc::new(RefCell::new(RootWidget::new(
         display.get_size(),
         Color::new(0xff, 0xff, 0xff, 0xff),
-        Layout::Box(Axis::Horizontal)
+        Layout::Box(Axis::Horizontal),
     )));
 
     // The next instructions build the widgets relative tree
 
     // Adds the `LabelWidget` as child of the `ButtonViewWidget`
-    button.borrow_mut()
-          .add_as_child(Rc::downgrade(&label) as Weak<RefCell<dyn Widget>>);
+    button
+        .borrow_mut()
+        .add_as_child(Rc::downgrade(&label) as Weak<RefCell<dyn Widget>>);
     // Adds the `ButtonViewWidget` as child of the `GridViewWidget`
 
     grid.borrow_mut()

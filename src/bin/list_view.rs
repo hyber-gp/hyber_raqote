@@ -1,14 +1,12 @@
 //! Contains the implementation of a `ListViewWidget` using the [`hyber`]
 //! (`crate`).
 //!
-//! The List View, on the [`hyber`](`crate`), is a widget implemented according 
+//! The List View, on the [`hyber`](`crate`), is a widget implemented according
 //! to the [`Widget`] trait but with his own properties. This properties
 //! need to be assigned by programmers.
 
 use hyber::display::Display;
-use hyber::event::Event;
-use hyber::event::Mouse::CursorMoved;
-use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
+use hyber::renderer::{AbsoluteWidgetCollection, RenderInstructionCollection, Renderer};
 use hyber::util::{Color, IDMachine, Vector2D};
 use hyber::widget::label::LabelWidget;
 use hyber::widget::list_view::ListViewWidget;

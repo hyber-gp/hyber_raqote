@@ -4,8 +4,8 @@ use hyber::event::Mouse::CursorMoved;
 use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
 use hyber::util::{Color, IDMachine, Vector2D};
 use hyber::widget::label::LabelWidget;
-use hyber::widget::sliver_view::SliverViewWidget;
 use hyber::widget::root::RootWidget;
+use hyber::widget::sliver_view::SliverViewWidget;
 use hyber::widget::{Axis, Layout, Widget};
 
 use std::cell::RefCell;
@@ -67,7 +67,8 @@ impl Message for MessageXPTO {
             MessageXPTO::Resize { sliver_ptr, event } => {
                 if let Some(sliver) = sliver_ptr.upgrade() {
                     if let Some(Event::Mouse(CursorMoved { x, y })) = event {
-                        sliver.borrow_mut()
+                        sliver
+                            .borrow_mut()
                             .set_original_size(Vector2D::new(*x as f64, *y as f64))
                     }
                 }
@@ -91,7 +92,10 @@ impl Message for MessageXPTO {
             } => {
                 *event = Some(new_event);
             }
-            MessageXPTO::Resize { sliver_ptr: _, event } => {
+            MessageXPTO::Resize {
+                sliver_ptr: _,
+                event,
+            } => {
                 *event = Some(new_event);
             }
         }
@@ -154,12 +158,15 @@ fn main() {
     )));
 
     // definir relaçoes de parentesco
-    sliver.borrow_mut()
+    sliver
+        .borrow_mut()
         .add_as_child(Rc::downgrade(&label_1) as Weak<RefCell<dyn Widget>>);
-    sliver.borrow_mut()
+    sliver
+        .borrow_mut()
         .add_as_child(Rc::downgrade(&label_2) as Weak<RefCell<dyn Widget>>);
     for child in label_vector.iter() {
-        sliver.borrow_mut()
+        sliver
+            .borrow_mut()
             .add_as_child(Rc::downgrade(&child) as Weak<RefCell<dyn Widget>>);
     }
     root.borrow_mut()

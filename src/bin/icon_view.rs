@@ -1,7 +1,7 @@
 //! Contains the implementation of a `IconWidget` using the [`hyber`]
 //! (`crate`).
 //!
-//! The Icon, on the [`hyber`](`crate`), is a widget implemented according 
+//! The Icon, on the [`hyber`](`crate`), is a widget implemented according
 //! to the [`Widget`] trait but with his own properties. This properties
 //! need to be assigned by programmers.
 
@@ -53,11 +53,11 @@ fn main() {
             width: 200,
             height: 200,
         }, // DrawImageOptions
-        /// TODO: There is an issue regarding the background colour.
-        /// When the bg colour contains red, at least when using
-        /// the library raqote to render the icon widget,
-        /// the system panics with an overflown exception on the
-        /// the draw target function of that same library
+        // TODO: There is an issue regarding the background colour.
+        // When the bg colour contains red, at least when using
+        // the library raqote to render the icon widget,
+        // the system panics with an overflown exception on the
+        // the draw target function of that same library
         Color::from_hex(0xff004dff), // color
     )));
 
@@ -72,7 +72,7 @@ fn main() {
     let root = Rc::new(RefCell::new(RootWidget::new(
         display.get_size(),
         Color::new(0xff, 0xff, 0xff, 0xff),
-        Layout::Box(Axis::Horizontal)
+        Layout::Box(Axis::Horizontal),
     )));
 
     // The next instructions build the widgets relative tree
@@ -80,7 +80,6 @@ fn main() {
     // Adds a `IconWidget` as child of the `GridViewWidget`
     grid.borrow_mut()
         .add_as_child(Rc::downgrade(&icon) as Weak<RefCell<dyn Widget>>);
-    
     // Adds the [`GridViewWidget`] as child of the [`RootWidget`]
     root.borrow_mut()
         .add_as_child(Rc::downgrade(&grid) as Weak<RefCell<dyn Widget>>);

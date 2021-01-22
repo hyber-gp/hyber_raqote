@@ -1,7 +1,7 @@
 //! Contains the implementation of a `CheckBoxWidget` using the [`hyber`]
 //! (`crate`).
 //!
-//! Checkbox, on the [`hyber`](`crate`), is a widget implemented according 
+//! Checkbox, on the [`hyber`](`crate`), is a widget implemented according
 //! to the [`Widget`] trait but with his own properties. This properties
 //! need to be assigned by programmers.
 
@@ -52,11 +52,10 @@ pub enum MessageXPTO {
         /// Event that triggers this message
         event: Option<Event>,
     },
-  
     /// Message to be triggered whether the checkbox is pressed
     ///
     /// Its goal is to enable/disable the button click according
-    /// to the checkbox status 
+    /// to the checkbox status
     CheckBoxTrigger {
         /// Reference to the memory location of the `ButtonViewWidget`
         btn_ptr: Weak<RefCell<ButtonViewWidget>>,
@@ -109,13 +108,19 @@ impl Message for MessageXPTO {
                 }
             }
             // Handles a `CheckBoxTrigger` `Message`
-            MessageXPTO::CheckBoxTrigger{btn_ptr, checkbox_ptr, event: _} => {
+            MessageXPTO::CheckBoxTrigger {
+                btn_ptr,
+                checkbox_ptr,
+                event: _,
+            } => {
                 // Gets the memory reference of the `ButtonViewWidget`
-                if let Some(button) = btn_ptr.upgrade(){
+                if let Some(button) = btn_ptr.upgrade() {
                     // Gets the memory reference of the `CheckBoxWidget`
-                    if let Some(checkbox) = checkbox_ptr.upgrade(){
+                    if let Some(checkbox) = checkbox_ptr.upgrade() {
                         // Updates the clickable flag on the `ButtonViewWidget`
-                        button.borrow_mut().set_is_clickable(checkbox.borrow_mut().get_is_checked())
+                        button
+                            .borrow_mut()
+                            .set_is_clickable(checkbox.borrow_mut().get_is_checked())
                     }
                 }
             }
@@ -210,7 +215,6 @@ fn main() {
         2.,
         0.25,
     )));
-  
     // Assigns the message `CheckBoxTrigger` to the `CheckBoxWidget`
     checkbox
         .borrow_mut()
@@ -232,14 +236,15 @@ fn main() {
     let root = Rc::new(RefCell::new(RootWidget::new(
         display.get_size(),
         Color::new(0xff, 0xff, 0xff, 0xff),
-        Layout::Box(Axis::Horizontal)
+        Layout::Box(Axis::Horizontal),
     )));
 
     // The next instructions build the widgets relative tree
 
     // Adds the `LabelWidget` as child of the `ButtonViewWidget`
-    button.borrow_mut().add_as_child(Rc::downgrade(&label) as Weak<RefCell<dyn Widget>>);
-    
+    button
+        .borrow_mut()
+        .add_as_child(Rc::downgrade(&label) as Weak<RefCell<dyn Widget>>);
     // Adds the `ButtonViewWidget` as child of the `GridViewWidget`
 
     grid.borrow_mut()
@@ -247,12 +252,11 @@ fn main() {
     // Adds the `GridViewWidget` as child of the `GridViewWidget`
     grid.borrow_mut()
         .add_as_child(Rc::downgrade(&checkbox) as Weak<RefCell<dyn Widget>>);
-    
     // Adds the `GridViewWidget` as child of the `RootWidget`
     root.borrow_mut()
         .add_as_child(Rc::downgrade(&grid) as Weak<RefCell<dyn Widget>>);
 
-    // Initializes the renderer built with [`raqote`](`crate`)  
+    // Initializes the renderer built with [`raqote`](`crate`)
     let mut renderer = hyber_raqote::Raqote::new(WIDTH as i32, HEIGHT as i32);
     let events = renderer.create_events_queue();
     let messages = renderer.create_message_queue();

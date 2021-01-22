@@ -1,14 +1,12 @@
 //! Contains the implementation of a `TextBoxWidget` using the [`hyber`]
 //! (`crate`).
 //!
-//! Testbox, on the [`hyber`](`crate`), is a widget implemented according 
+//! Testbox, on the [`hyber`](`crate`), is a widget implemented according
 //! to the [`Widget`] trait but with his own properties. This properties
 //! need to be assigned by programmers.
 
 use hyber::display::Display;
-use hyber::event::Event;
-use hyber::event::Mouse::CursorMoved;
-use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
+use hyber::renderer::{AbsoluteWidgetCollection, RenderInstructionCollection, Renderer};
 use hyber::util::{Color, IDMachine, Vector2D};
 use hyber::widget::grid_view::GridViewWidget;
 use hyber::widget::root::RootWidget;
@@ -68,17 +66,15 @@ fn main() {
         Color::new(0xff, 0xff, 0xff, 0xff),
         Layout::Box(Axis::Horizontal),
     )));
-    
     // The next instructions build the widgets relative tree
-    
     // Adds the `TextBoxWidget` as child of the `GridViewWidget`
-    grid.borrow_mut().add_as_child(Rc::downgrade(&textbox) as Weak<RefCell<dyn Widget>>);
-    
+    grid.borrow_mut()
+        .add_as_child(Rc::downgrade(&textbox) as Weak<RefCell<dyn Widget>>);
     // Adds the `GridViewWidget` as child of the `RootWidget`
     root.borrow_mut()
         .add_as_child(Rc::downgrade(&grid) as Weak<RefCell<dyn Widget>>);
 
-    // Initializes the renderer built with [`raqote`](`crate`)  
+    // Initializes the renderer built with [`raqote`](`crate`)
     let mut renderer = hyber_raqote::Raqote::new(WIDTH as i32, HEIGHT as i32);
     let events = renderer.create_events_queue();
     let messages = renderer.create_message_queue();
