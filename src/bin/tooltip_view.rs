@@ -1,3 +1,10 @@
+//! Contains the implementation of a `TooltipViewWidget` using the [`hyber`]
+//! (`crate`).
+//!
+//! Tooltip, on the [`hyber`](`crate`), is a widget implemented according 
+//! to the [`Widget`] trait but with his own properties. This properties
+//! need to be assigned by programmers.
+
 use hyber::display::Display;
 use hyber::event::Event;
 use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
@@ -12,87 +19,13 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::rc::Weak;
 
+/// The predefined display's width
 const WIDTH: f64 = 640.;
+/// The predefined display's height
 const HEIGHT: f64 = 360.;
 
-#[derive(Clone)]
-pub enum MessageXPTO {
-    Increment {
-        label_ptr: Weak<RefCell<LabelWidget>>,
-        num_ptr: Weak<RefCell<i64>>,
-        event: Option<Event>,
-    },
-    Decrement {
-        label_ptr: Weak<RefCell<LabelWidget>>,
-        num_ptr: Weak<RefCell<i64>>,
-        event: Option<Event>,
-    },
-    Resize {
-        grid_ptr: Weak<RefCell<GridViewWidget>>,
-        event: Option<Event>,
-    },
-}
-
-// t uconsegues :) we are rooting for you
-impl Message for MessageXPTO {
-    fn update(&self) {
-        match self {
-            MessageXPTO::Increment {
-                label_ptr,
-                num_ptr,
-                event: _,
-            } => {
-                if let Some(label) = label_ptr.upgrade() {
-                    if let Some(num) = num_ptr.upgrade() {
-                        *num.borrow_mut() += 1;
-                        label
-                            .borrow_mut()
-                            .set_text(String::from(format!("{}", *num.borrow())));
-                    }
-                }
-            }
-            MessageXPTO::Decrement {
-                label_ptr,
-                num_ptr,
-                event: _,
-            } => {
-                if let Some(label) = label_ptr.upgrade() {
-                    if let Some(num) = num_ptr.upgrade() {
-                        *num.borrow_mut() -= 1;
-                        label
-                            .borrow_mut()
-                            .set_text(String::from(format!("{}", *num.borrow())));
-                    }
-                }
-            }
-            _ => (),
-        }
-    }
-
-    fn set_event(&mut self, new_event: Event) {
-        match self {
-            MessageXPTO::Increment {
-                label_ptr: _,
-                num_ptr: _,
-                event,
-            } => {
-                *event = Some(new_event);
-            }
-            MessageXPTO::Decrement {
-                label_ptr: _,
-                num_ptr: _,
-                event,
-            } => {
-                *event = Some(new_event);
-            }
-            MessageXPTO::Resize { grid_ptr: _, event } => {
-                *event = Some(new_event);
-            }
-        }
-    }
-}
-
 fn main() {
+    // Sets up the display using the [`minifb`](`crate`)
     let mut display = hyber_raqote::DisplayMinifb::new(
         "Test - ESC to exit",
         WIDTH as usize,
@@ -102,21 +35,22 @@ fn main() {
             ..hyber::display::DisplayDescritor::default()
         },
     );
+
+    // Sets up the identifier to this machine
     let mut id_machine = IDMachine::new();
 
+    // Sets up the collection to hold all the render instructions required
     let collection = Rc::new(RefCell::new(RenderInstructionCollection::new()));
 
+    // Sets up the absolute widgets collection
     let absolute_collection = Rc::new(RefCell::new(AbsoluteWidgetCollection::new()));
 
-    let grid = Rc::new(RefCell::new(GridViewWidget::new(
-        Vector2D::new(WIDTH, HEIGHT),
-        Axis::Vertical,
-        3,
-    )));
-
+    // Initializes a vector to hold `LabelWidget`
     let mut label_vector = Vec::new();
 
+    // Loop to initialize four `LabelWidget`
     for i in 0..4 {
+        // Initializes and insert a `LabelWidget` on the previous vector
         label_vector.push(Rc::new(RefCell::new(LabelWidget::new(
             String::from(format!("label {}", i)),
             Vector2D::new(2000., 2000.),
@@ -126,6 +60,7 @@ fn main() {
         ))))
     }
 
+    // Initializes a `LabelWidget`
     let label_1 = Rc::new(RefCell::new(LabelWidget::new(
         String::from("Teste1!"),
         Vector2D::new(2000., 2000.),
@@ -133,6 +68,8 @@ fn main() {
         Color::from_hex(0xff008026),
         Color::from_hex(0xff004dff),
     )));
+
+    // Initializes a `LabelWidget`
     let label_2 = Rc::new(RefCell::new(LabelWidget::new(
         String::from("Teste2!"),
         Vector2D::new(100., 100.),
@@ -141,6 +78,7 @@ fn main() {
         Color::from_hex(0xff004dff),
     )));
 
+    // Initializes a `TooltipViewWidget`
     let tooltip = Rc::new(RefCell::new(TooltipViewWidget::new(
         Vector2D::new(2000., 2000.),
         Rc::downgrade(&collection),
@@ -148,28 +86,50 @@ fn main() {
         Rc::downgrade(&label_2) as Weak<RefCell<dyn Widget>>,
     )));
 
+    // Initializes the `GridViewWidget` to hold the multiple `LabelWidget`
+    let grid = Rc::new(RefCell::new(GridViewWidget::new(
+        Vector2D::new(WIDTH, HEIGHT),
+        Axis::Vertical,
+        3,
+    )));
+
+    // Initializes the `RootWidget` to handle the widgets tree
     let root = Rc::new(RefCell::new(RootWidget::new(
         display.get_size(),
         Color::new(0xff, 0xff, 0xff, 0xff),
         Layout::Box(Axis::Horizontal),
     )));
 
-    // definir relaçoes de parentesco
+    // The next instructions build the widgets relative tree
+
+    // Adds a `LabelWidget` as child of the `GridViewWidget`
     grid.borrow_mut()
         .add_as_child(Rc::downgrade(&label_1) as Weak<RefCell<dyn Widget>>);
+    
+    // Adds the `TooltipViewWidget` as child of the `GridViewWidget`
     grid.borrow_mut()
         .add_as_child(Rc::downgrade(&tooltip) as Weak<RefCell<dyn Widget>>);
+    
+    // Iterate over the vector of `LabelWidget`
     for child in label_vector.iter() {
+        // Adds a `LabelWidget` as child of the `ListViewWidget`
         grid.borrow_mut()
             .add_as_child(Rc::downgrade(&child) as Weak<RefCell<dyn Widget>>);
     }
+
+    // Adds the `GridViewWidget` as child of the `RootWidget`
     root.borrow_mut()
         .add_as_child(Rc::downgrade(&grid) as Weak<RefCell<dyn Widget>>);
 
+    // Initializes the renderer built with [`raqote`](`crate`)
     let mut renderer = hyber_raqote::Raqote::new(WIDTH as i32, HEIGHT as i32);
     let events = renderer.create_events_queue();
     let messages = renderer.create_message_queue();
 
+    // Initializes the main renderer loop
+    // This loop makes it possible to handle all the events
+    // and user interactions, as well as manages the widgets
+    // that are being displayed
     renderer.event_loop(
         events,
         messages,
@@ -180,11 +140,4 @@ fn main() {
         Rc::downgrade(&collection),
         Rc::downgrade(&absolute_collection),
     );
-    // Limit to max ~60 fps update rate
-    /*while window.is_open() && !window.is_key_down(Key::Escape) {
-    if window.get_mouse_down(minifb::MouseButton::Left) {
-        let event = Rendererxpto::map_events(EventoCliente::left_click);
-        queue.enqueue(event);
-    }*/
-    // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
 }

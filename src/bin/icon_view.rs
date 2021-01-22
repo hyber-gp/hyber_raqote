@@ -1,8 +1,13 @@
+//! Contains the implementation of a `IconWidget` using the [`hyber`]
+//! (`crate`).
+//!
+//! The Icon, on the [`hyber`](`crate`), is a widget implemented according 
+//! to the [`Widget`] trait but with his own properties. This properties
+//! need to be assigned by programmers.
+
 use hyber::display::Display;
-use hyber::event::Event;
-use hyber::event::Mouse::CursorMoved;
 use hyber::renderer::{
-    AbsoluteWidgetCollection, DrawImageOptions, Message, RenderInstructionCollection, Renderer,
+    AbsoluteWidgetCollection, DrawImageOptions, RenderInstructionCollection, Renderer,
 };
 use hyber::util::{Color, IDMachine, Vector2D};
 use hyber::widget::grid_view::GridViewWidget;
@@ -14,87 +19,13 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::rc::Weak;
 
+/// The predefined display's width
 const WIDTH: f64 = 640.;
+/// The predefined display's height
 const HEIGHT: f64 = 360.;
 
-#[derive(Clone)]
-pub enum MessageXPTO {
-    Increment {
-        icon_ptr: Weak<RefCell<IconWidget>>,
-        num_ptr: Weak<RefCell<i64>>,
-        event: Option<Event>,
-    },
-    Decrement {
-        icon_ptr: Weak<RefCell<IconWidget>>,
-        num_ptr: Weak<RefCell<i64>>,
-        event: Option<Event>,
-    },
-    Resize {
-        grid_ptr: Weak<RefCell<GridViewWidget>>,
-        event: Option<Event>,
-    },
-}
-
-impl Message for MessageXPTO {
-    fn update(&self) {
-        match self {
-            MessageXPTO::Increment {
-                icon_ptr,
-                num_ptr,
-                event: _,
-            } => {
-                if let Some(_icon) = icon_ptr.upgrade() {
-                    if let Some(num) = num_ptr.upgrade() {
-                        *num.borrow_mut() += 1;
-                    }
-                }
-            }
-            MessageXPTO::Decrement {
-                icon_ptr,
-                num_ptr,
-                event: _,
-            } => {
-                if let Some(_icon) = icon_ptr.upgrade() {
-                    if let Some(num) = num_ptr.upgrade() {
-                        *num.borrow_mut() -= 1;
-                    }
-                }
-            }
-            MessageXPTO::Resize { grid_ptr, event } => {
-                if let Some(grid) = grid_ptr.upgrade() {
-                    if let Some(Event::Mouse(CursorMoved { x, y })) = event {
-                        grid.borrow_mut()
-                            .set_original_size(Vector2D::new(*x as f64, *y as f64))
-                    }
-                }
-            }
-        }
-    }
-
-    fn set_event(&mut self, new_event: Event) {
-        match self {
-            MessageXPTO::Increment {
-                icon_ptr: _,
-                num_ptr: _,
-                event,
-            } => {
-                *event = Some(new_event);
-            }
-            MessageXPTO::Decrement {
-                icon_ptr: _,
-                num_ptr: _,
-                event,
-            } => {
-                *event = Some(new_event);
-            }
-            MessageXPTO::Resize { grid_ptr: _, event } => {
-                *event = Some(new_event);
-            }
-        }
-    }
-}
-
 fn main() {
+    // Sets up the display using the [`minifb`](`crate`)
     let mut display = hyber_raqote::DisplayMinifb::new(
         "Test - ESC to exit",
         WIDTH as usize,
@@ -104,43 +35,60 @@ fn main() {
             ..hyber::display::DisplayDescritor::default()
         },
     );
+
+    // Sets up the identifier to this machine
     let mut id_machine = IDMachine::new();
 
+    // Sets up the collection to hold all the render instructions required
     let collection = Rc::new(RefCell::new(RenderInstructionCollection::new()));
 
+    // Sets up the absolute widgets collection
     let absolute_collection = Rc::new(RefCell::new(AbsoluteWidgetCollection::new()));
 
+    // Initializes an `IconWidget`
     let icon = Rc::new(RefCell::new(IconWidget::new(
-        String::from("rust.png"),  // path
-        Vector2D::new(200., 200.), // size of the box layout
+        String::from("rust.png"),
+        Vector2D::new(200., 200.),
         DrawImageOptions::Resize {
             width: 200,
             height: 200,
-        }, // DrawImageOptions
-        Color::from_hex(0xff004dff), // color
+        },
+        Color::from_hex(0xff004dff),
     )));
 
+    // Initializes the `GridViewWidget` to hold the `IconWidget`
     let grid = Rc::new(RefCell::new(GridViewWidget::new(
         Vector2D::new(WIDTH, HEIGHT),
         Axis::Vertical,
         3,
     )));
 
+    // Initializes the `RootWidget` to handle the widgets tree
     let root = Rc::new(RefCell::new(RootWidget::new(
         display.get_size(),
         Color::new(0xff, 0xff, 0xff, 0xff),
         Layout::Box(Axis::Horizontal)
     )));
 
-    // definir relaçoes de parentesco
+    // The next instructions build the widgets relative tree
+
+    // Adds a `IconWidget` as child of the `GridViewWidget`
     grid.borrow_mut()
         .add_as_child(Rc::downgrade(&icon) as Weak<RefCell<dyn Widget>>);
+    
+    // Adds the [`GridViewWidget`] as child of the [`RootWidget`]
     root.borrow_mut()
         .add_as_child(Rc::downgrade(&grid) as Weak<RefCell<dyn Widget>>);
+
+    // Initializes the renderer built with [`raqote`](`crate`)
     let mut renderer = hyber_raqote::Raqote::new(WIDTH as i32, HEIGHT as i32);
     let events = renderer.create_events_queue();
     let messages = renderer.create_message_queue();
 
+    // Initializes the main renderer loop
+    // This loop makes it possible to handle all the events
+    // and user interactions, as well as manages the widgets
+    // that are being displayed
     renderer.event_loop(
         events,
         messages,
