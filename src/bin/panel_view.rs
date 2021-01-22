@@ -3,6 +3,8 @@ use hyber::event::Event;
 use hyber::event::Mouse::CursorMoved;
 use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
 use hyber::util::{Color, IDMachine, Vector2D};
+use hyber::widget::button_view::ButtonViewWidget;
+use hyber::widget::grid_view::GridViewWidget;
 use hyber::widget::label::LabelWidget;
 use hyber::widget::panel::PanelWidget;
 use hyber::widget::root::RootWidget;
@@ -18,15 +20,17 @@ const HEIGHT: f64 = 360.;
 #[derive(Clone)]
 pub enum MessageXPTO {
     Open {
-        panel_ptr: Weak<RefCell<PanelWidget>>,
+        label_ptr: Weak<RefCell<LabelWidget>>,
+        num_ptr: Weak<RefCell<i64>>,
         event: Option<Event>,
     },
     Close {
-        panel_ptr: Weak<RefCell<PanelWidget>>,
+        label_ptr: Weak<RefCell<LabelWidget>>,
+        num_ptr: Weak<RefCell<i64>>,
         event: Option<Event>,
     },
     Resize {
-        label_ptr: Weak<RefCell<LabelWidget>>,
+        grid_ptr: Weak<RefCell<GridViewWidget>>,
         event: Option<Event>,
     },
 }
@@ -35,31 +39,42 @@ pub enum MessageXPTO {
 impl Message for MessageXPTO {
     fn update(&self) {
         match self {
-            MessageXPTO::Open { panel_ptr, event } => {
-                if let Some(panel) = panel_ptr.upgrade() {
-                    if let Some(Event::Keyboard(_)) = event {
-                        println!("Open\n");
-                        panel
-                            .borrow_mut()
-                            .set_original_size(Vector2D::new(500., 200.))
+            MessageXPTO::Open {
+                label_ptr,
+                num_ptr,
+                event: _,
+            } => {
+                if let Some(label) = label_ptr.upgrade() {
+                    if let Some(num) = num_ptr.upgrade() {
+                        *num.borrow_mut() += 1;
+                        if (*num.borrow_mut() % 2i64 != 0) {
+                            println!("OPEN {}!", num.borrow_mut());
+                            label
+                                .borrow_mut()
+                                .set_original_size(Vector2D::new(100., 100.));
+                        } else {
+                            println!("Close {}!", num.borrow_mut());
+                            label.borrow_mut().set_original_size(Vector2D::new(0., 0.));
+                        }
                     }
                 }
             }
-            MessageXPTO::Close { panel_ptr, event } => {
-                if let Some(panel) = panel_ptr.upgrade() {
-                    if let Some(Event::Keyboard(_)) = event {
-                        println!("Close\n");
-                        panel
-                            .borrow_mut()
-                            .set_original_size(Vector2D::new(0., -100.))
+            MessageXPTO::Close {
+                label_ptr,
+                num_ptr,
+                event: _,
+            } => {
+                if let Some(label) = label_ptr.upgrade() {
+                    if let Some(num) = num_ptr.upgrade() {
+                        println!("Close !");
+                        label.borrow_mut().set_original_size(Vector2D::new(0., 0.));
                     }
                 }
             }
-            MessageXPTO::Resize { label_ptr, event } => {
-                if let Some(panel) = label_ptr.upgrade() {
+            MessageXPTO::Resize { grid_ptr, event } => {
+                if let Some(grid) = grid_ptr.upgrade() {
                     if let Some(Event::Mouse(CursorMoved { x, y })) = event {
-                        panel
-                            .borrow_mut()
+                        grid.borrow_mut()
                             .set_original_size(Vector2D::new(*x as f64, *y as f64))
                     }
                 }
@@ -70,21 +85,20 @@ impl Message for MessageXPTO {
     fn set_event(&mut self, new_event: Event) {
         match self {
             MessageXPTO::Open {
-                panel_ptr: _,
+                label_ptr: _,
+                num_ptr: _,
                 event,
             } => {
                 *event = Some(new_event);
             }
             MessageXPTO::Close {
-                panel_ptr: _,
+                label_ptr: _,
+                num_ptr: _,
                 event,
             } => {
                 *event = Some(new_event);
             }
-            MessageXPTO::Resize {
-                label_ptr: _,
-                event,
-            } => {
+            MessageXPTO::Resize { grid_ptr: _, event } => {
                 *event = Some(new_event);
             }
         }
@@ -107,37 +121,65 @@ fn main() {
 
     let absolute_collection = Rc::new(RefCell::new(AbsoluteWidgetCollection::new()));
 
-    let panel = Rc::new(RefCell::new(PanelWidget::new(
-        String::from("Panel"),
-        Vector2D::new(0.0, -100.0),
-        40,
-        Color::from_hex(0xff000000),
-        Color::from_hex(0xffff0000),
+    let counter = Rc::new(RefCell::new(0));
+
+    let label_1 = Rc::new(RefCell::new(LabelWidget::new(
+        String::from("Teste1!"),
+        Vector2D::new(2000f64, 2000f64),
+        33,
+        Color::from_hex(0xffff8026),
+        Color::from_hex(0xff004dff),
     )));
 
     let label_background = Rc::new(RefCell::new(LabelWidget::new(
-        String::from("Label"),
+        String::from("Panel"),
         Vector2D::new(2000000., 200000.),
         20,
         Color::from_hex(0xff008026),
         Color::from_hex(0xffffffff),
     )));
 
+    let panel = Rc::new(RefCell::new(PanelWidget::new(
+        Vector2D::new(20000f64, 300f64),
+        true,
+        Color::from_hex(0x36bd2b00),
+        Some(Box::new(MessageXPTO::Open {
+            label_ptr: Rc::downgrade(&label_background),
+            num_ptr: Rc::downgrade(&counter),
+            event: None,
+        })),
+        Some(Box::new(MessageXPTO::Close {
+            label_ptr: Rc::downgrade(&label_background),
+            num_ptr: Rc::downgrade(&counter),
+            event: None,
+        })),
+    )));
+
+    let grid = Rc::new(RefCell::new(GridViewWidget::new(
+        Vector2D::new(WIDTH, HEIGHT),
+        Axis::Vertical,
+        3,
+    )));
+
     let root = Rc::new(RefCell::new(RootWidget::new(
         display.get_size(),
-        Color::new(0xfa, 0xaa, 0xaa, 0xaa),
+        Color::new(0xff, 0xff, 0xff, 0xff),
         Layout::Box(Axis::Horizontal),
     )));
 
-    let mut renderer = hyber_raqote::Raqote::new(WIDTH as i32, HEIGHT as i32);
-    let events = renderer.create_events_queue();
-    let messages = renderer.create_message_queue();
-
+    label_background
+        .borrow_mut()
+        .add_as_child(Rc::downgrade(&label_1) as Weak<RefCell<dyn Widget>>);
     panel
         .borrow_mut()
         .add_as_child(Rc::downgrade(&label_background) as Weak<RefCell<dyn Widget>>);
-    root.borrow_mut()
+    grid.borrow_mut()
         .add_as_child(Rc::downgrade(&panel) as Weak<RefCell<dyn Widget>>);
+    root.borrow_mut()
+        .add_as_child(Rc::downgrade(&grid) as Weak<RefCell<dyn Widget>>);
+    let mut renderer = hyber_raqote::Raqote::new(WIDTH as i32, HEIGHT as i32);
+    let events = renderer.create_events_queue();
+    let messages = renderer.create_message_queue();
 
     renderer.event_loop(
         events,
