@@ -12,9 +12,12 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::rc::Weak;
 
+/// The predefined display's width
 const WIDTH: f64 = 640.;
+/// The predefined display's height
 const HEIGHT: f64 = 360.;
 
+/// Messages that the [`TabWidget`] needs to handle
 #[derive(Clone)]
 pub enum MessageXPTO {
     Increment {
@@ -32,7 +35,6 @@ pub enum MessageXPTO {
         event: Option<Event>,
     },
     TabPress {
-        //  tab_ptr: Weak<RefCell<LabelWidget>>,
         event: Option<Event>,
     },
     TabMove {

@@ -1,6 +1,5 @@
 //! Contains the implementation of a [`ButtonViewWidget`] using the [`hyber`]
-//! (`crate`) as GUI, the [`minifb`](`crate`) as display and the [`raqote`](`crate`)
-//! as renderer.
+//! (`crate`).
 //!
 //! Button, on the [`hyber`](`crate`), is a widget implemented according 
 //! to the [`Widget`] trait but with his own properties. This properties
@@ -72,9 +71,9 @@ impl Message for MessageXPTO {
                 num_ptr,
                 event: _,
             } => {
-                // To get the memory reference of the `LabelWidget`
+                // Gets the memory reference of the `LabelWidget`
                 if let Some(label) = label_ptr.upgrade() {
-                    // To get the memory reference of the counter
+                    // Gets the memory reference of the counter
                     if let Some(num) = num_ptr.upgrade() {
                         // Updates the counter by plus one
                         *num.borrow_mut() += 1;
@@ -91,9 +90,9 @@ impl Message for MessageXPTO {
                 num_ptr,
                 event: _,
             } => {
-                // To get the memory reference of the `LabelWidget`
+                // Gets the memory reference of the `LabelWidget`
                 if let Some(label) = label_ptr.upgrade() {
-                    // To get the memory reference of the counter
+                    // Gets the memory reference of the counter
                     if let Some(num) = num_ptr.upgrade() {
                         // Updates the counter by minus one
                         *num.borrow_mut() -= 1;
@@ -106,11 +105,11 @@ impl Message for MessageXPTO {
             }
             // Handles a `Resize` `Message`
             MessageXPTO::Resize { grid_ptr, event } => {
-                // To get the memory reference of the `GridViewWidget`
+                // Gets the memory reference of the `GridViewWidget`
                 if let Some(grid) = grid_ptr.upgrade() {
-                    // To get the specific `CursorMoved` event
+                    // Gets the specific `CursorMoved` event
                     if let Some(Event::Mouse(CursorMoved { x, y })) = event {
-                        // Update the `GridViewWidget` size
+                        // Updates the `GridViewWidget` size
                         grid.borrow_mut().set_original_size(Vector2D::new(*x as f64, *y as f64))
                     }
                 }
@@ -203,17 +202,7 @@ fn main() {
     let root = Rc::new(RefCell::new(RootWidget::new(
         display.get_size(),
         Color::new(0xff, 0xff, 0xff, 0xff),
-        Layout::Box(Axis::Horizontal),
-        Box::new(MessageXPTO::Increment {
-            label_ptr: Rc::downgrade(&label_1),
-            num_ptr: Rc::downgrade(&counter),
-            event: None,
-        }),
-        Box::new(MessageXPTO::Decrement {
-            label_ptr: Rc::downgrade(&label_1),
-            num_ptr: Rc::downgrade(&counter),
-            event: None,
-        })
+        Layout::Box(Axis::Horizontal)
     )));
 
     // The next instructions build the widgets relative tree
