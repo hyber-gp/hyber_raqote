@@ -197,7 +197,6 @@ fn main() {
             num_ptr: Rc::downgrade(&counter),
             event: None,
         }))
-        
     )));
 
     // Initializes the [`CheckBoxWidget`]
@@ -247,7 +246,7 @@ fn main() {
     grid.borrow_mut()
         .add_as_child(Rc::downgrade(&checkbox) as Weak<RefCell<dyn Widget>>);
     
-        // Adds the [`GridViewWidget`] as child of the [`RootWidget`]
+    // Adds the [`GridViewWidget`] as child of the [`RootWidget`]
     root.borrow_mut()
         .add_as_child(Rc::downgrade(&grid) as Weak<RefCell<dyn Widget>>);
 

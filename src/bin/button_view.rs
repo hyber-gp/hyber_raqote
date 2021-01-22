@@ -52,14 +52,6 @@ pub enum MessageXPTO {
         /// Event that triggers this message
         event: Option<Event>,
     },
-    /// Message to resize the display window
-    Resize {
-        /// Reference to the memory location of the [`GridViewWidget`]
-        /// that has the [`ButtonViewWidget`] as child and can be resized
-        grid_ptr: Weak<RefCell<GridViewWidget>>,
-        /// Event that triggers this message
-        event: Option<Event>,
-    },
 }
 
 impl Message for MessageXPTO {
@@ -103,17 +95,6 @@ impl Message for MessageXPTO {
                     }
                 }
             }
-            // Handles a `Resize` `Message`
-            MessageXPTO::Resize { grid_ptr, event } => {
-                // Gets the memory reference of the `GridViewWidget`
-                if let Some(grid) = grid_ptr.upgrade() {
-                    // Gets the specific `CursorMoved` event
-                    if let Some(Event::Mouse(CursorMoved { x, y })) = event {
-                        // Updates the `GridViewWidget` size
-                        grid.borrow_mut().set_original_size(Vector2D::new(*x as f64, *y as f64))
-                    }
-                }
-            }
         }
     }
 
@@ -131,9 +112,6 @@ impl Message for MessageXPTO {
                 num_ptr: _,
                 event,
             } => {
-                *event = Some(new_event);
-            }
-            MessageXPTO::Resize { grid_ptr: _, event } => {
                 *event = Some(new_event);
             }
         }
@@ -188,7 +166,6 @@ fn main() {
             num_ptr: Rc::downgrade(&counter),
             event: None,
         }))
-        
     )));
 
     // Initializes the [`GridViewWidget`] to hold the [`ButtonViewWidget`]
