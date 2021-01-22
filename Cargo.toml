@@ -9,14 +9,7 @@ edition = "2018"
 minifb = "0.19.1"
 
 # hyber - The library to implement on raqote
-# hyber =  { path = "C:\\Users\\Claubit\\Documents\\GitHub\\hyber"}
-# hyber =  { path = "C:\\Users\\cfpgo\\Documents\\GitHub\\hyber"}
-# hyber =  { path = "/home/samuel/Documents/GitHub/hyber" }
- hyber =  { path = "C:\\Users\\Samuel\\Documents\\GitHub\\hyber" }
-# hyber =  { path = "C:\\Users\\diogo\\Documents\\Faculdade\\GP\\projects\\hyber" }
-# hyber =  { path = "D:\\UC\\Rust\\hyber" }
-# hyber = {path = "C:\\Users\\migue\\Downloads\\Universidade\\GestaoProjetos\\hyber"}
-# hyber =  { path = "/Users/joaosantos/Development/Hyber/hyber"}
+hyber =  { git = "https://github.com/hyber-gp/hyber.git"}
 
 # raqote - Used for the 2d rendering context
 raqote = "^0.8.0"
