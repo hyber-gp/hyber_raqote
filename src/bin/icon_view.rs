@@ -117,6 +117,11 @@ fn main() {
             width: 200,
             height: 200,
         }, // DrawImageOptions
+        /// TODO: There is an issue regarding the background colour.
+        /// When the bg colour contains red, at least when using
+        /// the library raqote to render the icon widget,
+        /// the system panics with an overflown exception on the
+        /// the draw target function of that same library
         Color::from_hex(0xff004dff), // color
     )));
 
