@@ -24,45 +24,6 @@ const WIDTH: f64 = 640.;
 /// The predefined display's height
 const HEIGHT: f64 = 360.;
 
-/// Messages that the [`GridViewWidget`] needs to handle
-#[derive(Clone)]
-pub enum MessageXPTO {
-    /// Message to resize the display window
-    Resize {
-        /// Reference to the memory location of the [`GridViewWidget`]
-        /// that has the [`ButtonViewWidget`] as child and can be resized
-        grid_ptr: Weak<RefCell<GridViewWidget>>,
-        /// Event that triggers this message
-        event: Option<Event>,
-    },
-}
-
-impl Message for MessageXPTO {
-    fn update(&self) {
-        match self {
-            // Handles a `Resize` `Message`
-            MessageXPTO::Resize { grid_ptr, event } => {
-                // Gets the memory reference of the `GridViewWidget`
-                if let Some(grid) = grid_ptr.upgrade() {
-                    // Gets the specific `CursorMoved` event
-                    if let Some(Event::Mouse(CursorMoved { x, y })) = event {
-                        // Updates the `GridViewWidget` size
-                        grid.borrow_mut().set_original_size(Vector2D::new(*x as f64, *y as f64))
-                    }
-                }
-            }
-        }
-    }
-
-    fn set_event(&mut self, new_event: Event) {
-        match self {
-            MessageXPTO::Resize { grid_ptr: _, event } => {
-                *event = Some(new_event);
-            }
-        }
-    }
-}
-
 fn main() {
     // Sets up the display using the [`minifb`](`crate`)
     let mut display = hyber_raqote::DisplayMinifb::new(
@@ -117,8 +78,7 @@ fn main() {
         Color::from_hex(0xff004dff),
     )));
 
-    // Initializes the `GridViewWidget` to hold the `ButtonViewWidget`
-    // and the `CheckBoxWidget`
+    // Initializes the `GridViewWidget` to hold the multiple `LabelWidget`
     let grid = Rc::new(RefCell::new(GridViewWidget::new(
         Vector2D::new(WIDTH, HEIGHT),
         Axis::Vertical,
@@ -147,7 +107,7 @@ fn main() {
             .add_as_child(Rc::downgrade(&child) as Weak<RefCell<dyn Widget>>);
     }
 
-    // Adds the [`GridViewWidget`] as child of the [`RootWidget`]
+    // Adds the `GridViewWidget` as child of the `RootWidget`
     root.borrow_mut()
         .add_as_child(Rc::downgrade(&grid) as Weak<RefCell<dyn Widget>>);
 
