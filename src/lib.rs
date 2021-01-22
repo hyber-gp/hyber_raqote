@@ -1,3 +1,5 @@
+//! Mapping between the minifb and raqote with [`hyber`](`crate`)
+
 use hyber::{
     display::Display, display::DisplayDescritor, event, key_code, renderer::DrawImageOptions,
     renderer::RenderInstruction, renderer::RenderInstructionCollection, renderer::Renderer,
@@ -16,59 +18,87 @@ use font_kit::source::SystemSource;
 
 use image::open;
 
+/// Type of events that could occur by the client
 pub enum EventClient {
-    ///All mouse events
+    /// Click of the left mouse button
     LeftClickPress,
+    /// Release of the left mouse button
     LeftClickRelease,
+    /// Click of the right mouse button
     RightClickPress,
+    /// Release of the right mouse button
     RightClickRelease,
+    /// Click of the middle mouse button
     MiddleClickPress,
+    /// Release of the middle mouse button
     MiddleClickRelease,
+    /// Move of the mouse
     MouseMove {
         x: f32,
         y: f32,
     },
+    /// Move entered the window display
     MouseEntered,
+    /// Move left the window display
     MouseLeft,
+    /// Scroll of the mouse
     Scroll {
         x: f32,
         y: f32,
     },
-
-    //All Keyboard events
+    /// Key was pressed 
     KeyPressed {
+        /// Code of the pressed key
         key_code: hyber::key_code::KeyCode,
+        /// Modifiers associated to that code key
         modifiers: hyber::event::ModifiersState,
     },
-
+    /// Key was released
     KeyReleased {
+        /// Code of the pressed key
         key_code: hyber::key_code::KeyCode,
+        /// Modifiers associated to that code key
         modifiers: hyber::event::ModifiersState,
     },
-
-    //Window
+    /// Resize of the window display
     WindowResize {
+        /// The current window width
         width: u32,
+        /// The current window height
         height: u32,
     },
 }
 
+/// State of the mouse according to the status of his buttons
+/// and cursor's position
 #[derive(Default)]
 pub struct MouseState {
+    /// The current position of the mouse
     pub mouse_pos: (f32, f32),
+    /// Wheter the left mouse button is pressed
     pub button_left: bool,
+    /// Wheter the middle mouse button is pressed
     pub button_middle: bool,
+    /// Wheter the right mouse button is pressed
     pub button_right: bool,
+    /// Wheter the mouse cursos is whithin the window display
     pub mouse_on_window: bool,
 }
 
+/// State of the window
 pub struct WindowState {
+    /// The current window's size (width and height)
     pub window_size: (usize, usize),
 }
 
+/// Configuration of the display window and mouse according
+/// to the [`minifb`](`crate`)
 pub struct DisplayMinifb {
+    /// The display window
     pub display: minifb::Window,
+    /// The status of the detected mouse
     pub mouse_state: MouseState,
+    /// The status of the display window
     pub window_state: WindowState,
 }
 
@@ -151,7 +181,8 @@ impl Display for DisplayMinifb {
     }
 }
 
-/// A struct to save the drawtarget of raqote and to use as a reference for the primitives trait
+/// `DrawTarget` of [`raqote`](`crate`) to use as a 
+/// reference for the primitives trait
 pub struct Raqote {
     pub dt: DrawTarget,
 }
@@ -553,8 +584,8 @@ impl Renderer<DisplayMinifb, EventClient> for Raqote {
             EventClient::Scroll { x: new_x, y: new_y } => {
                 event::Event::Mouse(event::Mouse::WheelScrolled {
                     delta: event::ScrollDelta::Pixels {
-                        x: new_x as usize,
-                        y: new_y as usize,
+                        x: new_x as f64,
+                        y: new_y as f64,
                     },
                 })
             }
@@ -3055,16 +3086,21 @@ impl Renderer<DisplayMinifb, EventClient> for Raqote {
         collection: &RenderInstructionCollection,
         display: &mut DisplayMinifb,
     ) {
+        // Gets the current display size
         let size = display.get_size();
         if size.x as i32 != self.dt.width() || size.y as i32 != self.dt.height() {
             self.dt = DrawTarget::new(size.x as i32, size.y as i32);
         }
+
+        // Loop to iterate over all the render instructions
         for (_key, instructions) in collection.pairs.iter() {
             for instruction in instructions {
+                /// Draw the render instruction
                 self.draw(instruction);
             }
         }
 
+        /// Renders the buffer
         display
             .display
             .update_with_buffer(self.dt.get_data(), size.x as usize, size.y as usize)
