@@ -156,6 +156,7 @@ fn main() {
         Vector2D::new(20., 20.),
         Color::from_hex(0xFFFFFFFF),
         Color::from_hex(0xFF26B6EC),
+        Color::from_hex(0xFF000000),
         None,
         false,
         2.,
