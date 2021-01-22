@@ -63,7 +63,7 @@ fn main() {
     // Initializes a `LabelWidget`
     let label_1 = Rc::new(RefCell::new(LabelWidget::new(
         String::from("Teste1!"),
-        Vector2D::new(2000., 2000.),
+        Vector2D::new(2000., 50.),
         33,
         Color::from_hex(0xff008026),
         Color::from_hex(0xff004dff),
@@ -72,7 +72,7 @@ fn main() {
     // Initializes a `LabelWidget`
     let label_2 = Rc::new(RefCell::new(LabelWidget::new(
         String::from("Teste2!"),
-        Vector2D::new(2000., 2000.),
+        Vector2D::new(2000., 50.),
         33,
         Color::from_hex(0xff509996),
         Color::from_hex(0xff004dff),
