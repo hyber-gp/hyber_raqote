@@ -151,7 +151,7 @@ fn main() {
     root.borrow_mut()
         .add_as_child(Rc::downgrade(&grid) as Weak<RefCell<dyn Widget>>);
 
-    // Initializes the renderer built with [`raqote`](`crate`)  
+    // Initializes the renderer built with [`raqote`](`crate`)
     let mut renderer = hyber_raqote::Raqote::new(WIDTH as i32, HEIGHT as i32);
     let events = renderer.create_events_queue();
     let messages = renderer.create_message_queue();
