@@ -8,12 +8,12 @@
 use hyber::display::Display;
 use hyber::event::Event;
 use hyber::event::Mouse::CursorMoved;
-use hyber::renderer::{Message, RenderInstructionCollection, Renderer, AbsoluteWidgetCollection};
+use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
 use hyber::util::{Color, IDMachine, Vector2D};
+use hyber::widget::button_view::ButtonViewWidget;
 use hyber::widget::grid_view::GridViewWidget;
 use hyber::widget::label::LabelWidget;
 use hyber::widget::root::RootWidget;
-use hyber::widget::button_view::ButtonViewWidget;
 use hyber::widget::{Axis, Layout, Widget};
 
 use std::cell::RefCell;
@@ -153,7 +153,7 @@ fn main() {
 
     // Initializes the `ButtonViewWidget`
     let button = Rc::new(RefCell::new(ButtonViewWidget::new(
-        Vector2D::new(200f64,200f64),
+        Vector2D::new(200f64, 200f64),
         true,
         Color::from_hex(0x36bd2b00),
         Some(Box::new(MessageXPTO::Increment {
@@ -165,7 +165,7 @@ fn main() {
             label_ptr: Rc::downgrade(&label),
             num_ptr: Rc::downgrade(&counter),
             event: None,
-        }))
+        })),
     )));
 
     // Initializes the `GridViewWidget` to hold the `ButtonViewWidget`
@@ -188,6 +188,7 @@ fn main() {
     button.borrow_mut()
           .add_as_child(Rc::downgrade(&label) as Weak<RefCell<dyn Widget>>);
     // Adds the `ButtonViewWidget` as child of the `GridViewWidget`
+
     grid.borrow_mut()
         .add_as_child(Rc::downgrade(&button) as Weak<RefCell<dyn Widget>>);
     // Adds the `GridViewWidget` as child of the `RootWidget`

@@ -6,7 +6,9 @@
 //! need to be assigned by programmers.
 
 use hyber::display::Display;
-use hyber::renderer::{RenderInstructionCollection, Renderer, AbsoluteWidgetCollection};
+use hyber::event::Event;
+use hyber::event::Mouse::CursorMoved;
+use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
 use hyber::util::{Color, IDMachine, Vector2D};
 use hyber::widget::grid_view::GridViewWidget;
 use hyber::widget::root::RootWidget;
@@ -45,7 +47,7 @@ fn main() {
 
     // Initializes the `TextBoxWidget`
     let textbox = Rc::new(RefCell::new(TextBoxWidget::new(
-        Vector2D::new(200.,50.),
+        Vector2D::new(200., 50.),
         Color::from_hex(0xFFFFFFFF),
         Color::from_hex(0xFF000000),
         2.,

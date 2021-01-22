@@ -7,7 +7,8 @@
 
 use hyber::display::Display;
 use hyber::event::Event;
-use hyber::renderer::{Message, RenderInstructionCollection, Renderer, AbsoluteWidgetCollection};
+use hyber::event::Mouse::CursorMoved;
+use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
 use hyber::util::{Color, IDMachine, Vector2D};
 use hyber::widget::grid_view::GridViewWidget;
 use hyber::widget::label::LabelWidget;
@@ -36,7 +37,7 @@ pub enum MessageXPTO {
         slider_ptr: Weak<RefCell<SliderWidget>>,
         /// Event that triggers this message
         event: Option<Event>,
-    }
+    },
 }
 
 impl Message for MessageXPTO {
@@ -60,12 +61,10 @@ impl Message for MessageXPTO {
     fn set_event(&mut self, new_event: Event) {
         match self {
             MessageXPTO::Slide {
-                label_ptr:_,
-                slider_ptr:_,
+                label_ptr: _,
+                slider_ptr: _,
                 event,
-            } => {
-                *event = Some(new_event)
-            }
+            } => *event = Some(new_event),
         }
     }
 }
@@ -103,14 +102,14 @@ fn main() {
 
     // Initializes the `SliderWidget`
     let slider = Rc::new(RefCell::new(SliderWidget::new(
-        Vector2D::new(100., 4.), 
-        Color::from_hex(0xFF26B6EC), 
-        Color::from_hex(0xFF000000), 
-        Vector2D::new(8.,8.),
-        (0,100), 
-        10, 
-        100, 
-        None
+        Vector2D::new(100., 4.),
+        Color::from_hex(0xFF26B6EC),
+        Color::from_hex(0xFF000000),
+        Vector2D::new(8., 8.),
+        (0, 100),
+        10,
+        100,
+        None,
     )));
 
     // Assigns the message `Slide` to the `SliderWidget`
@@ -119,7 +118,7 @@ fn main() {
             label_ptr: Rc::downgrade(&label),
             slider_ptr: Rc::downgrade(&slider),
             event: None,
-    })));
+        })));
 
     // Initializes the `GridViewWidget` to hold the `SliderWidget`
     let grid = Rc::new(RefCell::new(GridViewWidget::new(
@@ -132,7 +131,7 @@ fn main() {
     let root = Rc::new(RefCell::new(RootWidget::new(
         display.get_size(),
         Color::new(0xff, 0xff, 0xff, 0xff),
-        Layout::Box(Axis::Horizontal)
+        Layout::Box(Axis::Horizontal),
     )));
 
     // The next instructions build the widgets relative tree

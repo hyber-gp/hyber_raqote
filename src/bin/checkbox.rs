@@ -7,13 +7,13 @@
 
 use hyber::display::Display;
 use hyber::event::Event;
-use hyber::renderer::{Message, RenderInstructionCollection, Renderer, AbsoluteWidgetCollection};
+use hyber::renderer::{AbsoluteWidgetCollection, Message, RenderInstructionCollection, Renderer};
 use hyber::util::{Color, IDMachine, Vector2D};
+use hyber::widget::button_view::ButtonViewWidget;
+use hyber::widget::checkbox::CheckBoxWidget;
 use hyber::widget::grid_view::GridViewWidget;
 use hyber::widget::label::LabelWidget;
 use hyber::widget::root::RootWidget;
-use hyber::widget::button_view::ButtonViewWidget;
-use hyber::widget::checkbox::CheckBoxWidget;
 use hyber::widget::{Axis, Layout, Widget};
 
 use std::cell::RefCell;
@@ -52,18 +52,19 @@ pub enum MessageXPTO {
         /// Event that triggers this message
         event: Option<Event>,
     },
+  
     /// Message to be triggered whether the checkbox is pressed
     ///
-    /// Is goal is to enable/disable the button click according
+    /// Its goal is to enable/disable the button click according
     /// to the checkbox status 
-    CheckBoxTrigger{
+    CheckBoxTrigger {
         /// Reference to the memory location of the `ButtonViewWidget`
         btn_ptr: Weak<RefCell<ButtonViewWidget>>,
         /// Reference to the memory location of the `CheckBoxWidget`
         checkbox_ptr: Weak<RefCell<CheckBoxWidget>>,
         /// Event that triggers this message
         event: Option<Event>,
-    }
+    },
 }
 
 impl Message for MessageXPTO {
@@ -137,14 +138,13 @@ impl Message for MessageXPTO {
             } => {
                 *event = Some(new_event);
             }
-            MessageXPTO::CheckBoxTrigger{
-                btn_ptr:_,
-                checkbox_ptr:_,
+            MessageXPTO::CheckBoxTrigger {
+                btn_ptr: _,
+                checkbox_ptr: _,
                 event,
             } => {
                 *event = Some(new_event);
             }
-            
         }
     }
 }
@@ -184,7 +184,7 @@ fn main() {
 
     // Initializes the [`ButtonViewWidget`]
     let button = Rc::new(RefCell::new(ButtonViewWidget::new(
-        Vector2D::new(200f64,200f64),
+        Vector2D::new(200f64, 200f64),
         false,
         Color::from_hex(0x36bd2b00),
         Some(Box::new(MessageXPTO::Increment {
@@ -196,7 +196,7 @@ fn main() {
             label_ptr: Rc::downgrade(&label),
             num_ptr: Rc::downgrade(&counter),
             event: None,
-        }))
+        })),
     )));
 
     // Initializes the [`CheckBoxWidget`]
@@ -210,14 +210,15 @@ fn main() {
         2.,
         0.25,
     )));
-    
+  
     // Assigns the message `CheckBoxTrigger` to the `CheckBoxWidget`
-    checkbox.borrow_mut().set_message(
-        Some(Box::new(MessageXPTO::CheckBoxTrigger{
+    checkbox
+        .borrow_mut()
+        .set_message(Some(Box::new(MessageXPTO::CheckBoxTrigger {
             btn_ptr: Rc::downgrade(&button),
             checkbox_ptr: Rc::downgrade(&checkbox),
             event: None,
-    })));
+        })));
 
     // Initializes the `GridViewWidget` to hold the `ButtonViewWidget`
     // and the `CheckBoxWidget`
@@ -240,6 +241,7 @@ fn main() {
     button.borrow_mut().add_as_child(Rc::downgrade(&label) as Weak<RefCell<dyn Widget>>);
     
     // Adds the `ButtonViewWidget` as child of the `GridViewWidget`
+
     grid.borrow_mut()
         .add_as_child(Rc::downgrade(&button) as Weak<RefCell<dyn Widget>>);
     // Adds the `GridViewWidget` as child of the `GridViewWidget`

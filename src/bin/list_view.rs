@@ -53,8 +53,8 @@ fn main() {
         // Initializes and insert a `LabelWidget` on the previous vector
         label_vector.push(Rc::new(RefCell::new(LabelWidget::new(
             String::from(format!("label {}", i)),
-            Vector2D::new(2000., 5.),
-            200,
+            Vector2D::new(2000., 50.),
+            20,
             Color::from_hex(0xffffed00),
             Color::from_hex(0xff750787),
         ))))

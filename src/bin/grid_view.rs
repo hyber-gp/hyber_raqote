@@ -50,9 +50,9 @@ fn main() {
 
     // Loop to initialize eight `LabelWidget`
     for i in 0..8 {
-        // Initializes and insert a `LabelWidget` on the previous vector
+        // Initializes and inserts a `LabelWidget` on the previous vector
         label_vector.push(Rc::new(RefCell::new(LabelWidget::new(
-            String::from(format!("label {}", i)),
+            String::from(format!("label {}", i+2)),
             Vector2D::new(2000., 2000.),
             20,
             Color::from_hex(0xffffed00),

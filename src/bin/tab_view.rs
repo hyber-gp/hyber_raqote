@@ -57,6 +57,10 @@ impl Message for MessageXPTO {
                 tab_ptr,
                 event: _,
             } => {
+                // TODO: The following implementation changes the position of the tags when dragged
+                // This is not ideal! 
+                // The implementation should be done in Hyber! The problem is: it needs access to the tab's parent in order to change its position
+                // and you cannot borrow the parent's pointer because it is already being used recursively on the OnEvent function.
                 // Gets the memory reference of the `LabelWidget`
                 if let Some(tab) = tab_ptr.upgrade() {
                     // Gets the memory reference of the `TabWidget`
@@ -87,6 +91,7 @@ impl Message for MessageXPTO {
                             index = index + 1;
                         }
                         if moved {
+                            // swap tabs order if moved
                             tab_grid
                                 .borrow_mut()
                                 .get_children()
