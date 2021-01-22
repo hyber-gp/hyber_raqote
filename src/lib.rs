@@ -91,9 +91,14 @@ pub struct WindowState {
     pub window_size: (usize, usize),
 }
 
+/// Configuration of the display window and mouse according
+/// to the [`minifb`](`crate`)
 pub struct DisplayMinifb {
+    /// The display window
     pub display: minifb::Window,
+    /// The status of the detected mouse
     pub mouse_state: MouseState,
+    /// The status of the display window
     pub window_state: WindowState,
 }
 
@@ -176,7 +181,7 @@ impl Display for DisplayMinifb {
     }
 }
 
-/// A struct to save the drawtarget of raqote and to use as a 
+/// `DrawTarget` of [`raqote`](`crate`) to use as a 
 /// reference for the primitives trait
 pub struct Raqote {
     pub dt: DrawTarget,
@@ -3081,16 +3086,21 @@ impl Renderer<DisplayMinifb, EventClient> for Raqote {
         collection: &RenderInstructionCollection,
         display: &mut DisplayMinifb,
     ) {
+        // Gets the current display size
         let size = display.get_size();
         if size.x as i32 != self.dt.width() || size.y as i32 != self.dt.height() {
             self.dt = DrawTarget::new(size.x as i32, size.y as i32);
         }
+
+        // Loop to iterate over all the render instructions
         for (_key, instructions) in collection.pairs.iter() {
             for instruction in instructions {
+                /// Draw the render instruction
                 self.draw(instruction);
             }
         }
 
+        /// Renders the buffer
         display
             .display
             .update_with_buffer(self.dt.get_data(), size.x as usize, size.y as usize)
