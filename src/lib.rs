@@ -1,3 +1,5 @@
+//! Mapping between the minifb and raqote with [`hyber`](`crate`)
+
 use hyber::{
     display::Display, display::DisplayDescritor, event, key_code, renderer::DrawImageOptions,
     renderer::RenderInstruction, renderer::RenderInstructionCollection, renderer::Renderer,
@@ -16,39 +18,53 @@ use font_kit::source::SystemSource;
 
 use image::open;
 
+/// Type of events that could occur by the client
 pub enum EventClient {
-    ///All mouse events
+    /// Click of the left mouse button
     LeftClickPress,
+    /// Release of the left mouse button
     LeftClickRelease,
+    /// Click of the right mouse button
     RightClickPress,
+    /// Release of the right mouse button
     RightClickRelease,
+    /// Click of the middle mouse button
     MiddleClickPress,
+    /// Release of the middle mouse button
     MiddleClickRelease,
+    /// Move of the mouse
     MouseMove {
         x: f32,
         y: f32,
     },
+    /// Move entered the window display
     MouseEntered,
+    /// Move left the window display
     MouseLeft,
+    /// Scroll of the mouse
     Scroll {
         x: f32,
         y: f32,
     },
-
-    //All Keyboard events
+    /// Key was pressed 
     KeyPressed {
+        /// Code of the pressed key
         key_code: hyber::key_code::KeyCode,
+        /// Modifiers associated to that code key
         modifiers: hyber::event::ModifiersState,
     },
-
+    /// Key was released
     KeyReleased {
+        /// Code of the pressed key
         key_code: hyber::key_code::KeyCode,
+        /// Modifiers associated to that code key
         modifiers: hyber::event::ModifiersState,
     },
-
-    //Window
+    /// Resize of the window display
     WindowResize {
+        /// The current window width
         width: u32,
+        /// The current window height
         height: u32,
     },
 }
@@ -151,7 +167,8 @@ impl Display for DisplayMinifb {
     }
 }
 
-/// A struct to save the drawtarget of raqote and to use as a reference for the primitives trait
+/// A struct to save the drawtarget of raqote and to use as a 
+/// reference for the primitives trait
 pub struct Raqote {
     pub dt: DrawTarget,
 }
